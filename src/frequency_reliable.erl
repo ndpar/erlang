@@ -4,6 +4,8 @@
 %%
 %% Based on frequency2.erl
 %%
+%% Test 1: Kill the client
+%%
 %% 1> frequency_reliable:start().
 %% ok
 %% 2> frequency_reliable:allocate().
@@ -16,6 +18,19 @@
 %% {ok,10}
 %% 6> frequency_reliable:allocate().
 %% {ok,11}
+%%
+%% Test 2: Kill the server
+%%
+%% 1> frequency_reliable:start().
+%% ok
+%% 2> frequency_reliable:allocate().
+%% {ok,10}
+%% 3> self().
+%% <0.31.0>
+%% 4> exit(whereis(frequency_reliable), kill).
+%% true
+%% 5> self().
+%% <0.37.0>
 %%
 -module(frequency_reliable).
 -export([start/0, stop/0]).
