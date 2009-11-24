@@ -1,0 +1,1 @@
+-record(bintree, {value, left, right}).
