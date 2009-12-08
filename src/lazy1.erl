@@ -1,7 +1,11 @@
 %%
-%% http://groups.google.com/group/erlang-programming/browse_thread/thread/6541d9a47d30b0e0#
+%% LazyList = [Elem1, ListGenerator]
+%% ListGenerator = fun(Elem2) -> LazyList
+%% Elem1 = Elem2 = term()
 %%
--module(lazy).
+%% See http://www.erlang.org/cgi-bin/ezmlm-cgi/4/177
+%%
+-module(lazy1).
 -export([filter/2, foldl/3, map/2]).
 -export([first/2, filter_first/3, foldl_first/4, map_first/3]).
 -export([natural_numbers/0]).
@@ -10,37 +14,25 @@
 % Lazy list samples
 %
 
-integers_from(K) -> fun() -> [K | integers_from(K + 1)] end.
+integers_from(K) -> [K | fun() -> integers_from(K + 1) end].
 natural_numbers() -> integers_from(1).
 
 %
 % Fundamental operations on lazy lists
 %
 
-filter(P, CE) ->
-    fun() ->
-        case CE() of
-            []     -> [];
-            [X|Xs] -> case P(X) of
-                          true  -> [X | filter(P, Xs)];
-                          false -> (filter(P, Xs))()
-                      end
-        end
+filter(_, []) -> [];
+filter(Pred, [X|Gen]) ->
+    case Pred(X) of
+        true -> [X | fun() -> filter(Pred, Gen()) end];
+        false -> filter(Pred, Gen())
     end.
 
-foldl(F, A, CE) ->
-    case CE() of
-        []     -> A;
-        [X|Xs] -> foldl(F, F(A,X), Xs)
-    end.
+foldl(_, Acc, []) -> {Acc, []};
+foldl(Fun, Acc, [X|Gen]) -> {Fun(X, Acc), Gen()}.
 
-map(F, CE) ->
-    fun() ->
-        case CE() of
-            []     -> [];
-            [X|Xs] -> [F(X) | map(F, Xs)]
-        end
-    end.
+map(_, []) -> [];
+map(Fun, [X|Gen]) -> [Fun(X) | fun() -> map(Fun, Gen()) end].
 
 %
 % Operations on first elements of lazy lists
@@ -48,19 +40,17 @@ map(F, CE) ->
 
 first(N, LazyList) -> take([], N, LazyList).
 
-take(A, 0, _) -> A;
-take(A, N, CE) -> [X|Xs] = CE(), take(A ++ [X], N-1, Xs).
+take(Acc, 0, _) -> Acc;
+take(Acc, N, [X|Gen]) -> take(Acc ++ [X], N - 1, Gen()).
 
-filter_first(N, P, CE) -> first(N, filter(P, CE)).
+filter_first(N, Pred, LazyList) -> first(N, filter(Pred, LazyList)).
 
-foldl_first(0, _, A, _) -> A;
-foldl_first(N, F, A, CE) ->
-    case CE() of
-        []     -> A;
-        [X|Xs] -> foldl_first(N-1, F, F(A,X), Xs)
-    end.
+foldl_first(0, _, Acc, _) -> Acc;
+foldl_first(N, Fun, Acc, LazyList) ->
+    {NewAcc, LazyTail} = foldl(Fun, Acc, LazyList),
+    foldl_first(N-1, Fun, NewAcc, LazyTail).
 
-map_first(N, F, CE) -> first(N, map(F, CE)).
+map_first(N, Fun, LazyList) -> first(N, map(Fun, LazyList)).
 
 %
 % Operations on natural numbers
@@ -81,11 +71,15 @@ first_sum(N) -> foldl_first(N, fun(X,Sum) -> X + Sum end, 0, natural_numbers()).
 -include_lib("eunit/include/eunit.hrl").
 
 filter_test() ->
-    [X|_] = (filter(fun(X) -> 10 < X end, natural_numbers()))(),
+    [X|_] = filter(fun(X) -> 10 < X end, natural_numbers()),
     ?assertEqual(11, X).
 
+foldl_test() ->
+    {P,_} = foldl(fun(X,Prod) -> X * Prod end, 1, natural_numbers()),
+    ?assertEqual(1, P).
+
 map_test() ->
-    [X|_] = (map(fun(X) -> X*2 end, natural_numbers()))(),
+    [X|_] = map(fun(X) -> X*2 end, natural_numbers()),
     ?assertEqual(2, X).
 
 first_natural_numbers_test() ->
