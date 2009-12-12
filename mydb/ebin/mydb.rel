@@ -1,0 +1,7 @@
+%%
+%% F.Cesarini & S.Thomson, Erlang Programming, p.289.
+%%
+{release, {"In-memory Database","R1"}, {erts, "5.7.3"},
+ [{kernel,"2.13.3"},
+  {stdlib,"1.16.3"},
+  {mydb,"1.0"}]}.
