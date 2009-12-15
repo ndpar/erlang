@@ -1,0 +1,18 @@
+INSTALLING DATABASE
+
+(master@macBook)1> mnesia:create_schema([master@macBook, slave1@macBook, slave2@macBook]).
+(master@macBook)2> application:start(mnesia).
+(slave1@macBook)1> application:start(mnesia).
+(slave2@macBook)1> application:start(mnesia).
+(master@macBook)3> rd(mycache, {key, value}).
+(master@macBook)4> mnesia:create_table(mycache, [{attributes, record_info(fields, mycache)}, {disc_only_copies, [master@macBook]}, {ram_copies, [slave1@macBook, slave2@macBook]}]).
+
+(slave2@macBook)2> application:stop(mnesia).
+(slave1@macBook)2> application:stop(mnesia).
+(master@macBook)5> application:stop(mnesia).
+
+WORKING WITH CACHE
+
+master@macBook$ ./start-master.sh
+slave1@macBook$ ./start-slave1.sh
+slave2@macBook$ ./start-slave2.sh
