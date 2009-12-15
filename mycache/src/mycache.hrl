@@ -1,0 +1,1 @@
+-record(mycache, {key, value}).
