@@ -1,6 +1,6 @@
 -module(mycache).
 -export([start/0, stop/0]).
--export([put/2, get/1]).
+-export([put/2, get/1, remove/1]).
 -export([init/1, terminate/2, handle_call/3, handle_cast/2]).
 -behaviour(gen_server).
 -include("mycache.hrl").
@@ -21,6 +21,9 @@ put(Key, Value) ->
 get(Key) ->
     gen_server:call(?MODULE, {get, Key}).
 
+remove(Key) ->
+    gen_server:call(?MODULE, {remove, Key}).
+
 % Callback functions
 
 init(_) ->
@@ -36,11 +39,33 @@ handle_cast(stop, State) ->
 
 handle_call({put, Key, Value}, _From, State) ->
     Rec = #mycache{key = Key, value = Value},
-    {_, Result} = mnesia:transaction(fun() -> mnesia:write(Rec) end),
+    F = fun() ->
+            case mnesia:read(mycache, Key) of
+                [] ->
+                    mnesia:write(Rec),
+                    null;
+                [#mycache{value = OldValue}] ->
+                    mnesia:write(Rec),
+                    OldValue
+            end
+        end,
+    {atomic, Result} = mnesia:transaction(F),
     {reply, Result, State};
 
 handle_call({get, Key}, _From, State) ->
     case mnesia:dirty_read({mycache, Key}) of
         [#mycache{value = Value}] -> {reply, Value, []};
         _ -> {reply, null, State}
-    end.
+    end;
+
+handle_call({remove, Key}, _From, State) ->
+    F = fun() ->
+            case mnesia:read(mycache, Key) of
+                [] -> null;
+                [#mycache{value = Value}] ->
+                    mnesia:delete({mycache, Key}),
+                    Value
+            end
+        end,
+    {atomic, Result} = mnesia:transaction(F),
+    {reply, Result, State}.
