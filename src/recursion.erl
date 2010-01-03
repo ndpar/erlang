@@ -1,6 +1,8 @@
-%% Author: Andrey Paramonov
-%% Created: Nov 6, 2009
-%% Description: Solutions to exercises to Chapter 3 of "Erlang Programming"
+%
+% F.Cesarini & S.Thomson, Erlang Programming, p.84.
+% Exercise 3-5: Manipulating lists
+% Exercise 3-6: Sorting lists
+%
 -module(recursion).
 -export([average/1,
          bump/1,
@@ -65,15 +67,25 @@ split_acc([], Acc) -> Acc;
 split_acc([F,S | Tail], {First, Scnd}) -> split_acc(Tail, {First ++ [F], Scnd ++ [S]});
 split_acc([H], {First, Scnd}) -> {First ++ [H], Scnd}.
 
-qsort([]) -> [];
-qsort([H | Tail]) -> qsort([Y || Y <- Tail, Y < H]) ++ [H] ++ qsort([Y || Y <- Tail, Y >= H]).
-
 merge(Xs, Ys) -> lists:reverse(mergeL(Xs,Ys,[])).
 mergeL([X|Xs],Ys,Zs) -> mergeR(Xs,Ys,[X|Zs]);
 mergeL([],[],Zs) -> Zs.
 mergeR(Xs,[Y|Ys],Zs) -> mergeL(Xs,Ys,[Y|Zs]);
 mergeR([],[],Zs) -> Zs.
 
+qsort([]) -> [];
+qsort([H | Tail]) -> qsort([Y || Y <- Tail, Y < H]) ++ [H] ++ qsort([Y || Y <- Tail, Y >= H]).
+
+% http://en.wikipedia.org/wiki/Merge_sort
+msort([]) -> [];
+msort([X]) -> [X];
 msort(List) ->
-    {Frst, Scnd} = split(List),
-    merge(qsort(Frst), qsort(Scnd)).
+    {Left, Right} = split(List),
+    merge_ordered(msort(Left), msort(Right)).
+
+merge_ordered(Left, Right) -> merge_ordered_acc(Left, Right, []).
+merge_ordered_acc([], [], Acc) -> Acc;
+merge_ordered_acc(Left, [], Acc) -> Acc ++ Left;
+merge_ordered_acc([], Right, Acc) -> Acc ++ Right;
+merge_ordered_acc([X|Xs], [Y|Ys], Acc) when X < Y -> merge_ordered_acc(Xs, [Y|Ys], Acc ++ [X]);
+merge_ordered_acc([X|Xs], [Y|Ys], Acc) -> merge_ordered_acc([X|Xs], Ys, Acc ++ [Y]).
