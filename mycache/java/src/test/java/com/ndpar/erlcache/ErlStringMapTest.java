@@ -6,6 +6,7 @@ import java.io.File;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -14,7 +15,7 @@ import org.junit.Test;
 public class ErlStringMapTest {
 
     private static String cookie;
-    private Map<String, String> map;
+    private ErlStringMap map;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -24,6 +25,12 @@ public class ErlStringMapTest {
     @Before
     public void setUp() {
         map = new ErlStringMap("client1", cookie, "slave1@macBook", "mycache");
+        map.open();
+    }
+
+    @After
+    public void tearDown() {
+        map.close();
     }
 
     @Test
@@ -55,15 +62,6 @@ public class ErlStringMapTest {
         System.out.println(count + " write operations take: " + duration + "ms. " + (1.0 * duration/count) + "ms per operation");
     }
 
-    @Test @Ignore("long running dirty test")
-    public void removePerformance() {
-        int count = 1000;
-        long start = System.currentTimeMillis();
-        for (Integer i = 0; i < count; i++) map.remove(i.toString());
-        long duration = System.currentTimeMillis() - start;
-        System.out.println(count + " remove operations take: " + duration + "ms. " + (1.0 * duration/count) + "ms per operation");
-    }
-
     @Test @Ignore("long running test")
     public void getPerformance() {
         int count = 1000;
@@ -71,5 +69,14 @@ public class ErlStringMapTest {
         for (Integer i = 0; i < count; i++) map.get(i.toString());
         long duration = System.currentTimeMillis() - start;
         System.out.println(count + " get operations take: " + duration + "ms. " + (1.0 * duration/count) + "ms per operation");
+    }
+
+    @Test @Ignore("long running dirty test")
+    public void removePerformance() {
+        int count = 1000;
+        long start = System.currentTimeMillis();
+        for (Integer i = 0; i < count; i++) map.remove(i.toString());
+        long duration = System.currentTimeMillis() - start;
+        System.out.println(count + " remove operations take: " + duration + "ms. " + (1.0 * duration/count) + "ms per operation");
     }
 }

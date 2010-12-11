@@ -12,11 +12,29 @@ public class ErlStringMap implements Map<String, String> {
     private final OtpPeer other;
     private final String cacheModule;
 
+    private OtpConnection connection;
+
     public ErlStringMap(String client, String cookie, String serverNode, String cacheModule) {
         try {
             self = new OtpSelf(client, cookie);
             other = new OtpPeer(serverNode);
             this.cacheModule = cacheModule;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public void open() {
+        try {
+            connection = self.connect(other);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public void close() {
+        try {
+            connection.close();
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -36,10 +54,8 @@ public class ErlStringMap implements Map<String, String> {
 
     private String remoteCall(String method, String... args) {
         try {
-            OtpConnection connection = self.connect(other);
             connection.sendRPC(cacheModule, method, stringsToErlangStrings(args));
             OtpErlangObject received = connection.receiveRPC();
-            connection.close();
             return parse(received);
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);

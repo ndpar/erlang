@@ -1,4 +1,4 @@
 #!/bin/sh
 
-erl -sname slave1 -s mycache_boot
+erl -noshell -sname slave1 -s application start mycache
 
