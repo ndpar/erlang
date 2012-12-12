@@ -9,7 +9,7 @@ neighbours({X, Y}) ->
 next_step(Cells) ->
     Nbs = flatmap(fun neighbours/1, to_list(Cells)),
     NewCells = [C || {C, N} <- frequencies(Nbs),
-                     (N == 3) or ((N == 2) and is_element(C, Cells))],
+                     (N == 3) orelse ((N == 2) andalso is_element(C, Cells))],
     from_list(NewCells).
 
 frequencies(List) -> frequencies(List, []).
