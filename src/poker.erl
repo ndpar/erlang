@@ -23,7 +23,7 @@ card_rank([$K,_]) -> 13;
 card_rank([$Q,_]) -> 12;
 card_rank([$J,_]) -> 11;
 card_rank([$T,_]) -> 10;
-card_rank([R ,_]) -> R - 48.
+card_rank([R ,_]) -> R - $0.
 
 % To avoid nested case-clauses, we pass a hand through a chain of
 % functions until one of them returns a 'defined' value.
