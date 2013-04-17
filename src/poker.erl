@@ -7,23 +7,13 @@
 
 %%% Hand is a list of 2-char strings, i.e. ["6H","3D","AS","TH","JC"].
 
-%% Function returns the list of hand's card ranks, sorted in desc order.
+%% Return a list of the ranks, sorted with higher first
 card_ranks(Hand) ->
-    Ranks = lists:reverse(lists:sort(lists:map(fun card_rank/1, Hand))),
-    ace_low_card_ranks(Ranks).
-
-%% Wheel case (see tests at the bottom).
-ace_low_card_ranks([14,5,4,3,2]) -> [5,4,3,2,1];
-ace_low_card_ranks(Ranks) -> Ranks.
-
-%% 2-char string in reality is a list of 2 numbers, i.e.
-%% Ace of Hearts: "AH" = [$A,$H] = [65,72]
-card_rank([$A,_]) -> 14;
-card_rank([$K,_]) -> 13;
-card_rank([$Q,_]) -> 12;
-card_rank([$J,_]) -> 11;
-card_rank([$T,_]) -> 10;
-card_rank([R ,_]) -> R - $0.
+    Ranks = [string:str("-23456789TJQKA", [R]) || [R,_] <- Hand],
+    case lists:sort(fun erlang:'>'/2, Ranks) of
+        [14,5,4,3,2] -> [5,4,3,2,1];
+        SortedRanks  -> SortedRanks
+    end.
 
 % To avoid nested case-clauses, we pass a hand through a chain of
 % functions until one of them returns a 'defined' value.
@@ -49,17 +39,19 @@ hand_rank(Ranks, Hand) ->
 
 hand_rank(Ranks, Hand, [F|Fs]) ->
     hand_rank2(F(Ranks, Hand), Ranks, Hand, Fs).
+
 hand_rank2(undefined, Ranks, Hand, Fs) ->
     hand_rank(Ranks, Hand, Fs);
-hand_rank2(Rank, _, _, _) -> Rank.
+hand_rank2(HandRank, _, _, _) -> HandRank.
 
 % Functions evaluating specific hand combinations.
 % Return vector-value of the hand or 'undefined'.
 
 straight_flush(Ranks, Hand) ->
-    straight_flush2(straight(Ranks,Hand), flush(Ranks,Hand)).
-straight_flush2([4,R], [5|_]) -> [8, R];
-straight_flush2(_,_) -> undefined.
+    case {straight(Ranks,Hand), flush(Ranks,Hand)} of
+        {[4,R], [5|_]} -> [8, R];
+        _              -> undefined
+    end.
 
 four_of_kind([H,L,L,L,L], _) -> [7, L, H];
 four_of_kind([H,H,H,H,L], _) -> [7, H, L];
@@ -72,10 +64,8 @@ full_house(_,_) -> undefined.
 flush(Ranks, [[_,S], [_,S], [_,S], [_,S], [_,S]]) -> [5 | Ranks];
 flush(_,_) -> undefined.
 
-straight([R1, R2, R3, R4, R5], _) when R1 == R2+1,
-                                       R2 == R3+1,
-                                       R3 == R4+1,
-                                       R4 == R5+1 -> [4, R1];
+straight([R1, R2, R3, R4, R5], _)
+    when R1 == R2+1, R2 == R3+1, R3 == R4+1, R4 == R5+1 -> [4, R1];
 straight(_,_) -> undefined.
 
 three_of_kind([R,R,R,_,_] = Ranks, _) -> [3, R | Ranks];
@@ -88,9 +78,11 @@ two_pair([H,H,_,L,L] = Ranks, _) -> [2, H, L | Ranks];
 two_pair([_,H,H,L,L] = Ranks, _) -> [2, H, L | Ranks];
 two_pair(_,_) -> undefined.
 
-pair(Ranks, _) -> pair2(lists:usort(Ranks), Ranks).
-pair2([_,_,_,_] = UniqRanks, Ranks) -> [1, hd(Ranks -- UniqRanks) | Ranks];
-pair2(_,_) -> undefined.
+pair([R,R,_,_,_] = Ranks, _) -> [1, R | Ranks];
+pair([_,R,R,_,_] = Ranks, _) -> [1, R | Ranks];
+pair([_,_,R,R,_] = Ranks, _) -> [1, R | Ranks];
+pair([_,_,_,R,R] = Ranks, _) -> [1, R | Ranks];
+pair(_,_) -> undefined.
 
 high_card(Ranks, _) -> [0 | Ranks].
 
