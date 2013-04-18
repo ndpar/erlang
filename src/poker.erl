@@ -3,11 +3,10 @@
 %%%
 
 -module(poker).
--export([hand_rank/1, sort_hands/1, winner/1]).
+-export([hand_rank/1, sort_hands/1, winners/1]).
 
-%%% Hand is a list of 2-char strings, i.e. ["6H","3D","AS","TH","JC"].
-
-%% Return a list of the ranks, sorted with higher first
+%% Return a list of the ranks, sorted with higher first.
+%% Hand is a list of 2-char strings, i.e. ["6H","3D","AS","TH","JC"].
 card_ranks(Hand) ->
     Ranks = [string:str("-23456789TJQKA", [R]) || [R,_] <- Hand],
     case lists:sort(fun erlang:'>'/2, Ranks) of
@@ -15,37 +14,27 @@ card_ranks(Hand) ->
         SortedRanks  -> SortedRanks
     end.
 
-% To avoid nested case-clauses, we pass a hand through a chain of
-% functions until one of them returns a 'defined' value.
-% Because of that, each function takes two arguments, Ranks and Hand,
-% although it usually needs only one.
-
+%% Return a value indicating the ranking of a hand.
 hand_rank(Hand) ->
-    hand_rank(card_ranks(Hand), Hand).
+    CardRanks = card_ranks(Hand),
+    HandRanks = [R || F <- poker_hands(),
+                      begin R = F(CardRanks, Hand), R /= undefined end],
+    hd(HandRanks).
 
-hand_rank(Ranks, Hand) ->
-    hand_rank(Ranks, Hand,
-        [
-            fun straight_flush/2,
-            fun four_of_kind/2,
-            fun full_house/2,
-            fun flush/2,
-            fun straight/2,
-            fun three_of_kind/2,
-            fun two_pair/2,
-            fun pair/2,
-            fun high_card/2
-        ]).
+%% http://en.wikipedia.org/wiki/List_of_poker_hands
 
-hand_rank(Ranks, Hand, [F|Fs]) ->
-    hand_rank2(F(Ranks, Hand), Ranks, Hand, Fs).
-
-hand_rank2(undefined, Ranks, Hand, Fs) ->
-    hand_rank(Ranks, Hand, Fs);
-hand_rank2(HandRank, _, _, _) -> HandRank.
-
-% Functions evaluating specific hand combinations.
-% Return vector-value of the hand or 'undefined'.
+poker_hands() ->
+    [
+        fun straight_flush/2,
+        fun four_of_kind/2,
+        fun full_house/2,
+        fun flush/2,
+        fun straight/2,
+        fun three_of_kind/2,
+        fun two_pair/2,
+        fun pair/2,
+        fun high_card/2
+    ].
 
 straight_flush(Ranks, Hand) ->
     case {straight(Ranks,Hand), flush(Ranks,Hand)} of
@@ -89,14 +78,11 @@ high_card(Ranks, _) -> [0 | Ranks].
 %% To find a winning hand, we just sort hands according to their ranks
 
 sort_hands(Hands) ->
-    lists:sort(fun compare/2, Hands).
+    lists:sort(fun(H1, H2) -> hand_rank(H2) =< hand_rank(H1) end, Hands).
 
-% Better hand first
-compare(Hand1, Hand2) ->
-    hand_rank(Hand2) =< hand_rank(Hand1).
-
-winner(Hands) ->
-    hd(sort_hands(Hands)).
+winners(Hands) ->
+    SortedHands = sort_hands(Hands),
+    [H || H <- SortedHands, H == hd(SortedHands)].
 
 %%% ===========================================================================
 %%% Unit tests
@@ -113,8 +99,7 @@ card_ranks_test() ->
 
 hand_rank_result(HandStr) ->
     Hand = list_to_hand(HandStr),
-    Ranks = card_ranks(Hand),
-    hand_rank(Ranks, Hand).
+    hand_rank(Hand).
 
 straight_flush_test() ->
     ?assertEqual([8,6], hand_rank_result("2H 4H 6H 3H 5H")),
@@ -250,4 +235,4 @@ sort_hands_test() ->
             RoyalFlushClubs
         ])
     ),
-    ?assertEqual(SteelWheel, winner([Wheel, SteelWheel])).
+    ?assertEqual([SteelWheel], winners([Wheel, SteelWheel])).
