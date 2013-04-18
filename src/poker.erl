@@ -75,14 +75,15 @@ pair(_,_) -> undefined.
 
 high_card(Ranks, _) -> [0 | Ranks].
 
-%% To find a winning hand, we just sort hands according to their ranks
+%% To find winners, we just sort hands according to their rankings
 
 sort_hands(Hands) ->
     lists:sort(fun(H1, H2) -> hand_rank(H2) =< hand_rank(H1) end, Hands).
 
 winners(Hands) ->
     SortedHands = sort_hands(Hands),
-    [H || H <- SortedHands, H == hd(SortedHands)].
+    HighestRank = hand_rank(hd(SortedHands)),
+    [H || H <- SortedHands, hand_rank(H) == HighestRank].
 
 %%% ===========================================================================
 %%% Unit tests
@@ -235,4 +236,5 @@ sort_hands_test() ->
             RoyalFlushClubs
         ])
     ),
-    ?assertEqual([SteelWheel], winners([Wheel, SteelWheel])).
+    ?assertEqual([SteelWheel], winners([Wheel, SteelWheel])),
+    ?assertEqual([RoyalFlushSpades, RoyalFlushClubs], winners([RoyalFlushSpades, RoyalFlushClubs])).
