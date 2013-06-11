@@ -1,5 +1,5 @@
 -module(barber).
-
+-author("Andrey Paramonov <github@ndpar.com>").
 -behaviour(gen_fsm).
 
 %% API
