@@ -10,9 +10,7 @@
          terminate/3, code_change/4]).
 
 %% FSM states
--export([wait/2, being_served/2]).
-
--record(state, {waited, served}).
+-export([waiting/2, served/2]).
 
 %%====================================================================
 %% API
@@ -39,8 +37,8 @@ sorry(Customer) ->
 %%====================================================================
 
 init([]) ->
-    log("Good morning.", []),
-    {ok, wait, #state{waited = calendar:universal_time()}}.
+    log("Good morning."),
+    {ok, waiting, unow()}.
 
 handle_info(_Info, _StateName, StateData) ->
     {stop, undefined, StateData}.
@@ -58,31 +56,38 @@ code_change(_OldVsn, StateName, StateData, _Extra) ->
     {ok, StateName, StateData}.
 
 %%====================================================================
-%% States and transitions
+%% FSM states and transitions
 %%====================================================================
 
-wait(sit_down, #state{waited = Waited}) ->
-    WaitingTime = calendar:time_difference(Waited, calendar:universal_time()),
-    log("I've been waiting for ~p.", [WaitingTime]),
-    NewStateData = #state{served = calendar:universal_time()},
-    {next_state, being_served, NewStateData};
+waiting(sit_down, WaitStart) ->
+    log("I've been waiting for ~p sec.", [duration(WaitStart)]),
+    {next_state, served, unow()};
 
-wait(wait, StateData) ->
-    log("OK.", []),
-    {next_state, wait, StateData};
+waiting(wait, StateData) ->
+    log("OK."),
+    {next_state, waiting, StateData};
 
-wait(exit, _StateData) ->
-    log("Maybe tomorrow.", []),
-    {stop, normal, #state{}}.
+waiting(exit, _StateData) ->
+    log("Maybe tomorrow."),
+    {stop, normal, undefined}.
 
-being_served(exit, #state{served = Served}) ->
-    ServedTime = calendar:time_difference(Served, calendar:universal_time()),
-    log("Thank you. It took ~p.", [ServedTime]),
-    {stop, normal, #state{}}.
+served(exit, ServiceStart) ->
+    log("Thank you. The haircut took ~p sec.", [duration(ServiceStart)]),
+    {stop, normal, undefined}.
 
 %%====================================================================
 %% Helper functions
 %%====================================================================
 
+log(Message) ->
+    log(Message, []).
+
 log(Message, Args) ->
     error_logger:info_msg("~p: " ++ Message ++ "~n", [self() | Args]).
+
+unow() ->
+    calendar:universal_time().
+
+duration(Start) ->
+    {_, {_, _, Seconds}} = calendar:time_difference(Start, unow()),
+    Seconds.
