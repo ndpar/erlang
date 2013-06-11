@@ -3,8 +3,7 @@
 -behaviour(gen_fsm).
 
 %% API
--export([start_link/0]).
--export([new_customer/1]).
+-export([start_link/0, new_customer/1]).
 
 %% Callback functions
 -export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
@@ -34,21 +33,21 @@ new_customer(Customer) ->
 %%====================================================================
 
 init([]) ->
-    error_logger:info_msg("Zzzzz~n"),
+    log("Shop is open. zzzzZ", []),
     {ok, sleep, #state{}}.
 
 handle_info(finish, busy, #state{chair = Customer, room = Room}) ->
-    error_logger:info_msg("Do you like it ~p?~n", [Customer]),
+    log("Do you like it ~p?", [Customer]),
     customer:done(Customer),
     case Room of
         [C | Rest] ->
-            error_logger:info_msg("Next please ~p.~n", [C]),
+            log("Next please ~p.", [C]),
             customer:sit_down(C),
             timer:send_after(?HAIRCUT_TIME, finish),
             NewStateData = #state{chair = C, room = Rest},
             {next_state, busy, NewStateData};
         [] ->
-            error_logger:info_msg("Time for a nap. zzzzZ.~n"),
+            log("Time for a nap. zzzzZ.", []),
             {next_state, sleep, #state{}}
     end.
 
@@ -68,7 +67,7 @@ code_change(_OldVsn, StateName, StateData, _Extra) ->
 %%====================================================================
 
 sleep({new, Customer}, StateData) ->
-    error_logger:info_msg("Good morning ~p. Please, take a seat.~n", [Customer]),
+    log("Good morning ~p. Please, take a seat.", [Customer]),
     customer:sit_down(Customer),
     timer:send_after(?HAIRCUT_TIME, finish),
     NewStateData = StateData#state{chair = Customer},
@@ -76,11 +75,19 @@ sleep({new, Customer}, StateData) ->
 
 busy({new, Customer}, #state{room = Room} = StateData)
   when length(Room) == ?ROOM_SIZE ->
-    error_logger:info_msg("Sorry ~p. Not today.~n", [Customer]),
+    log("Sorry ~p. Not today.", [Customer]),
     customer:sorry(Customer),
     {next_state, busy, StateData};
+
 busy({new, Customer}, #state{room = Room} = StateData) ->
-    error_logger:info_msg("I'm busy. You need to wait.~n"),
+    log("I'm busy. You need to wait.", []),
     customer:wait(Customer),
     NewStateData = StateData#state{room = Room ++ [Customer]},
     {next_state, busy, NewStateData}.
+
+%%====================================================================
+%% Helper functions
+%%====================================================================
+
+log(Message, Args) ->
+    error_logger:info_msg("~p: " ++ Message ++ "~n", [self() | Args]).

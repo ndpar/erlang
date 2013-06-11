@@ -39,7 +39,7 @@ sorry(Customer) ->
 %%====================================================================
 
 init([]) ->
-    error_logger:info_msg("~p: Good morning.~n", [self()]),
+    log("Good morning.", []),
     {ok, wait, #state{waited = calendar:universal_time()}}.
 
 handle_info(_Info, _StateName, StateData) ->
@@ -63,17 +63,26 @@ code_change(_OldVsn, StateName, StateData, _Extra) ->
 
 wait(sit_down, #state{waited = Waited}) ->
     WaitingTime = calendar:time_difference(Waited, calendar:universal_time()),
-    error_logger:info_msg("~p: I've been waiting for ~p.~n", [self(), WaitingTime]),
+    log("I've been waiting for ~p.", [WaitingTime]),
     NewStateData = #state{served = calendar:universal_time()},
     {next_state, being_served, NewStateData};
+
 wait(wait, StateData) ->
-    error_logger:info_msg("~p: OK.~n", [self()]),
+    log("OK.", []),
     {next_state, wait, StateData};
+
 wait(exit, _StateData) ->
-    error_logger:info_msg("~p: Maybe tomorrow.~n", [self()]),
+    log("Maybe tomorrow.", []),
     {stop, normal, #state{}}.
 
 being_served(exit, #state{served = Served}) ->
     ServedTime = calendar:time_difference(Served, calendar:universal_time()),
-    error_logger:info_msg("~p: Thank you. It took ~p.~n", [self(), ServedTime]),
+    log("Thank you. It took ~p.", [ServedTime]),
     {stop, normal, #state{}}.
+
+%%====================================================================
+%% Helper functions
+%%====================================================================
+
+log(Message, Args) ->
+    error_logger:info_msg("~p: " ++ Message ++ "~n", [self() | Args]).
