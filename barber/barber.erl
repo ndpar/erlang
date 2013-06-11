@@ -38,14 +38,17 @@ init([]) ->
     {ok, sleep, #state{}}.
 
 handle_info(finish, busy, #state{chair = Customer, room = Room}) ->
-    % TODO: notify customer about finish
+    error_logger:info_msg("Do you like it ~p?~n", [Customer]),
+    customer:done(Customer),
     case Room of
         [C | Rest] ->
-            % TODO: notify customer about start
-            NewStateData = #state{chair = C, room = Rest},
+            error_logger:info_msg("Next please ~p.~n", [C]),
+            customer:sit_down(C),
             timer:send_after(?HAIRCUT_TIME, finish),
+            NewStateData = #state{chair = C, room = Rest},
             {next_state, busy, NewStateData};
         [] ->
+            error_logger:info_msg("Time for a nap. zzzzZ.~n"),
             {next_state, sleep, #state{}}
     end.
 
@@ -66,16 +69,18 @@ code_change(_OldVsn, StateName, StateData, _Extra) ->
 
 sleep({new, Customer}, StateData) ->
     error_logger:info_msg("Good morning ~p. Please, take a seat.~n", [Customer]),
-    % TODO: notify customer about start
-    NewStateData = StateData#state{chair = Customer},
+    customer:sit_down(Customer),
     timer:send_after(?HAIRCUT_TIME, finish),
+    NewStateData = StateData#state{chair = Customer},
     {next_state, busy, NewStateData}.
 
 busy({new, Customer}, #state{room = Room} = StateData)
   when length(Room) == ?ROOM_SIZE ->
-    % TODO: say customer sorry
+    error_logger:info_msg("Sorry ~p. Not today.~n", [Customer]),
+    customer:sorry(Customer),
     {next_state, busy, StateData};
 busy({new, Customer}, #state{room = Room} = StateData) ->
-    % TODO: say customer wait
+    error_logger:info_msg("I'm busy. You need to wait.~n"),
+    customer:wait(Customer),
     NewStateData = StateData#state{room = Room ++ [Customer]},
     {next_state, busy, NewStateData}.
