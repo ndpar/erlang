@@ -33,23 +33,26 @@ new_customer(Customer) ->
 %%====================================================================
 
 init([]) ->
-    log("Shop is open. zzzzZ", []),
+    log("Shop is open. zzzzZ"),
     {ok, sleep, #state{}}.
 
 handle_info(finish, busy, #state{chair = Customer, room = Room}) ->
-    log("Do you like it ~p?", [Customer]),
+    log("Do you like your haircut ~p?", [Customer]),
     customer:done(Customer),
     case Room of
         [C | Rest] ->
             log("Next please ~p.", [C]),
-            customer:sit_down(C),
-            timer:send_after(?HAIRCUT_TIME, finish),
+            serving(C),
             NewStateData = #state{chair = C, room = Rest},
             {next_state, busy, NewStateData};
         [] ->
-            log("Time for a nap. zzzzZ.", []),
+            log("Time for a nap. zzzzZ."),
             {next_state, sleep, #state{}}
     end.
+
+serving(Customer) ->
+    customer:sit_down(Customer),
+    timer:send_after(?HAIRCUT_TIME, finish).
 
 handle_event(_Event, _StateName, StateData) ->
     {stop, undefined, StateData}.
@@ -57,19 +60,19 @@ handle_event(_Event, _StateName, StateData) ->
 handle_sync_event(_Event, _From, _StateName, StateData) ->
     {stop, undefined, none, StateData}.
 
-terminate(_Reason, _StateName, _StateData) -> ok.
+terminate(_Reason, _StateName, _StateData) ->
+    ok.
 
 code_change(_OldVsn, StateName, StateData, _Extra) ->
     {ok, StateName, StateData}.
 
 %%====================================================================
-%% States and transitions
+%% FSM states and transitions
 %%====================================================================
 
 sleep({new, Customer}, StateData) ->
-    log("Good morning ~p. Please, take a seat.", [Customer]),
-    customer:sit_down(Customer),
-    timer:send_after(?HAIRCUT_TIME, finish),
+    log("Good morning ~p. Please take a seat.", [Customer]),
+    serving(Customer),
     NewStateData = StateData#state{chair = Customer},
     {next_state, busy, NewStateData}.
 
@@ -80,7 +83,7 @@ busy({new, Customer}, #state{room = Room} = StateData)
     {next_state, busy, StateData};
 
 busy({new, Customer}, #state{room = Room} = StateData) ->
-    log("I'm busy. You need to wait.", []),
+    log("I'm busy. You need to wait."),
     customer:wait(Customer),
     NewStateData = StateData#state{room = Room ++ [Customer]},
     {next_state, busy, NewStateData}.
@@ -88,6 +91,9 @@ busy({new, Customer}, #state{room = Room} = StateData) ->
 %%====================================================================
 %% Helper functions
 %%====================================================================
+
+log(Message) ->
+    log(Message, []).
 
 log(Message, Args) ->
     error_logger:info_msg("~p: " ++ Message ++ "~n", [self() | Args]).
