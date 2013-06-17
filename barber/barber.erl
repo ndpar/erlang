@@ -46,7 +46,7 @@ handle_info(finish, busy, #state{chair = Customer, room = Room}) ->
             NewStateData = #state{chair = C, room = Rest},
             {next_state, busy, NewStateData};
         [] ->
-            log("Time for a nap. zzzzZ."),
+            log("Time for nap. zzzzZ."),
             {next_state, sleep, #state{}}
     end.
 
@@ -83,7 +83,7 @@ busy({new, Customer}, #state{room = Room} = StateData)
     {next_state, busy, StateData};
 
 busy({new, Customer}, #state{room = Room} = StateData) ->
-    log("I'm busy. You need to wait."),
+    log("I'm busy. You have to wait."),
     customer:wait(Customer),
     NewStateData = StateData#state{room = Room ++ [Customer]},
     {next_state, busy, NewStateData}.
