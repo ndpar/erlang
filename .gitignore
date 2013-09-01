@@ -1,9 +1,11 @@
+.deps_plt
+.eunit
 *.beam
 /ebin
 /temp
 /temp2
 
-/mycache/doc
+doc
 /mycache/ebin/Mnesia*
 /mycache/ebin/*.beam
 /mycache/java/.classpath

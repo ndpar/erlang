@@ -1,0 +1,7 @@
+%% -*- mode: Erlang; fill-column: 75; comment-column: 50; -*-
+{application, mastermind,
+ [{description, "Erlang implementation of the Matermind game"},
+  {vsn, "semver"},
+  {modules, []},
+  {registered, []},
+  {applications, [kernel, stdlib]}]}.
