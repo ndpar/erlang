@@ -32,8 +32,8 @@ positions([], _, Acc) ->
 
 
 %% @doc Internal function: Starts a listner loop.
-%% Responds on messages in the form of [number()].
--spec loop([{number(), [number()]}]) -> {Black::number(), White::number()} | congrats.
+%% Responds on messages in the form of [pos_integer()].
+-spec loop([{pos_integer(), [pos_integer()]}]) -> {Black::non_neg_integer(), White::non_neg_integer()} | congrats.
 loop(Code) ->
     receive
         {Pid, Guess} ->
@@ -68,7 +68,7 @@ match(Set1, Set2) ->
 
 %% @doc Submits a guess pattern to the codemaker.
 %% Returns a tuple of black and white pegs.
--spec guess([number()]) -> {Black::number(), White::number()} | congrats.
+-spec guess([pos_integer()]) -> {Black::non_neg_integer(), White::non_neg_integer()} | congrats.
 guess(Pattern) ->
     ?MODULE ! {self(), Pattern},
     receive
