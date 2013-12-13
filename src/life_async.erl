@@ -5,13 +5,18 @@
 %%% This implementation preserves the standard game behaviour by
 %%% introducing a master process which represents a global clock.
 %%%
+%%% The game runs for finite number of steps and then stops.
+%%%
 %%% Another feature of this implementation is that new processes
 %%% are spawned for live cells only, therefore it requires less
 %%% processes than fully async implementation.
 %%%
-%%% See also life.erl for standard game implementation.
+%%% See also:
+%%% life.erl - standard game implementation,
+%%% life_async_grid - fully async implementation.
 %%%
 -module(life_async).
+-author("Andrey Paramonov <github@ndpar.com>").
 
 %% Published API
 -export([start/2]).
@@ -38,7 +43,7 @@ start(Seed, Iter) ->
 
 %% @doc Main loop (usually runs in shell process).
 %% Map is a list of coordinates where new cells to be born.
-%% World is a hashtable of live cells. Keys are coordinates,
+%% World is a hashmap of live cells. Keys are coordinates,
 %% values are processes. One process per live cell.
 god(Map, World, 0) ->
     ok = apocalypse(cells(World)),
