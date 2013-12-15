@@ -4,16 +4,19 @@
 %%% http://en.wikipedia.org/wiki/Asynchronous_cellular_automaton
 %%%
 %%% This implementation can be run step by step, controlled from
-%%% the shell, in which case it preserves the standard game
-%%% behaviour, more or less.
-%%% Or it can run completely asynchronously until it's stopped by
+%%% the shell, in which case it preserves the classic game behaviour.
+%%% Or it can be run completely asynchronously until it's stopped by
 %%% `stop` message. In this case the behaviour of the game is
-%%% totally unpredictable.
+%%% eventually consistent, meaning that at any particular point
+%%% there might be cells on the grid from different generations,
+%%% which you wouldn't expect in the classic game. However,
+%%% since cells "synchronize" with each other, the results of the
+%%% async game "on average" will be the same as in the classic one.
 %%%
 %%% In either case, the default state of the grid can be examined
 %%% by running `snapshot` command.
 %%%
-%%% To run the game forever, uncomment line 132.
+%%% To run the game forever, uncomment line 148.
 %%%
 %%% See also:
 %%% life.erl - standard game implementation,
@@ -30,7 +33,9 @@
 
 %% Cell state as a convenient data holder
 -record(cell, {coord,
+               gen = 0,
                state = dead,
+               prev_state = dead,
                response_count = 0,
                alive_count = 0,
                neighbours = []}).
@@ -81,17 +86,18 @@ make_alive(Coords, Grid) ->
 start(Grid) ->
     ok = send(Grid, coordinates(Grid), start).
 
-%% @doc Sends `status` message to all cells, requesting their status.
-%% Blocks until receiving responses from all cells.
-%% Returns coordinates of all live cells.
+%% @doc Sends `current_status` message to all cells, requesting
+%% their status. Blocks until receiving responses from all cells.
+%% Returns coordinates of all live cells together with their
+%% generation numbers.
 snapshot(Grid) ->
     All = coordinates(Grid),
-    ok = send(Grid, All, {status, self()}),
+    ok = send(Grid, All, {current_status, self()}),
     lists:foldl(
         fun(C, Acc) ->
                 receive
-                    {status, C, alive} -> [C|Acc];
-                    {status, C, dead} -> Acc
+                    {current_status, C, alive, Gen} -> [{C,Gen}|Acc];
+                    {current_status, C, dead, _} -> Acc
                 end
         end, [], All).
 
@@ -106,6 +112,8 @@ stop(Grid) ->
 %% @doc Main loop of a cell is to respond to messages from shell
 %% and other cells.
 cell(State) ->
+    CurrentGen = State#cell.gen,
+    PrevGen = CurrentGen - 1,
     receive
         {connect, Grid} ->
             NCoords = neighbours(State#cell.coord, grid_size(Grid)),
@@ -113,16 +121,24 @@ cell(State) ->
             cell(State#cell{neighbours = NewNeighbours});
         alive ->
             cell(State#cell{state = alive});
-        {status, Sender} ->
-            Sender ! {status, State#cell.coord, State#cell.state},
+        {current_status, Sender} ->
+            Sender ! {current_status, State#cell.coord, State#cell.state, State#cell.gen},
+            cell(State);
+        {your_status, CurrentGen, Sender} ->
+            Sender ! {my_status, State#cell.state},
+            cell(State);
+        {your_status, PrevGen, Sender} ->
+            Sender ! {my_status, State#cell.prev_state},
             cell(State);
         start ->
             self() ! step,
             cell(State);
         step ->
-            lists:foreach(fun(N) -> N ! {status, self()} end, State#cell.neighbours),
+            lists:foreach(
+                fun(N) -> N ! {your_status, State#cell.gen, self()} end,
+                State#cell.neighbours),
             cell(State);
-        {status, _, NStatus} ->
+        {my_status, NStatus} ->
             NewState = new_state(State, NStatus),
             self() ! {transition, NewState#cell.response_count, NewState#cell.alive_count},
             cell(NewState);
@@ -130,7 +146,8 @@ cell(State) ->
             NewStatus = new_status(State#cell.state, NAlive),
             %% uncomment to disable global clock
             %self() ! step,
-            cell(State#cell{state = NewStatus, response_count = 0, alive_count = 0});
+            cell(State#cell{prev_state = State#cell.state, state = NewStatus,
+                            gen = State#cell.gen + 1, response_count = 0, alive_count = 0});
         {transition, _, _} ->
             cell(State);
         stop -> ok
