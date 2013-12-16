@@ -16,7 +16,7 @@
 %%% In either case, the default state of the grid can be examined
 %%% by running `snapshot` command.
 %%%
-%%% To run the game forever, uncomment line 148.
+%%% To run the game forever, uncomment line 153.
 %%%
 %%% See also:
 %%% life.erl - standard game implementation,
@@ -143,11 +143,15 @@ cell(State) ->
             self() ! {transition, NewState#cell.response_count, NewState#cell.alive_count},
             cell(NewState);
         {transition, 8, NAlive} ->
-            NewStatus = new_status(State#cell.state, NAlive),
+            NewState = State#cell{state = new_status(State#cell.state, NAlive),
+                                  prev_state = State#cell.state,
+                                  gen = State#cell.gen + 1,
+                                  response_count = 0,
+                                  alive_count = 0},
+            ok = print_transition(NewState),
             %% uncomment to disable global clock
             %self() ! step,
-            cell(State#cell{prev_state = State#cell.state, state = NewStatus,
-                            gen = State#cell.gen + 1, response_count = 0, alive_count = 0});
+            cell(NewState);
         {transition, _, _} ->
             cell(State);
         stop -> ok
@@ -164,6 +168,17 @@ new_state(State, dead) ->
 new_status(_, 3) -> alive;
 new_status(alive, 2) -> alive;
 new_status(_, _) -> dead.
+
+%% @doc Print state transition.
+%% If state hasn't changed, don't print it.
+print_transition(#cell{prev_state = alive, state = dead} = State) ->
+    pretty_print(State);
+print_transition(#cell{prev_state = dead, state = alive} = State) ->
+    pretty_print(State);
+print_transition(_) -> ok.
+
+pretty_print(#cell{state = State, coord = Coord, gen = Gen}) ->
+    io:format("~p: ~p -> ~p~n", [Gen, Coord, State]).
 
 %% ------------------------------------------------------------------
 %% Helper functions
