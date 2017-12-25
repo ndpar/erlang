@@ -23,20 +23,12 @@ mult_shift(Z, <<V:127, 0:1>>, <<_:1, Y/bitstring>>) -> mult(Z, <<0:1, V:127>>, Y
 mult_shift(Z, <<V:127, 1:1>>, <<_:1, Y/bitstring>>) -> mult(Z, exor(<<0:1, V:127>>, ?R), Y).
 
 
-ghash(H, A, C) -> ghash(H, A, C, <<0:128>>, size(A), size(C)).
-
-ghash(H, <<Ai:16/binary, A/binary>>, C, X, ALength, CLength) ->
-  ghash(H, A, C, mult(exor(X, Ai), H), ALength, CLength);
-ghash(H, <<A/binary>>, C, X, ALength, CLength) when size(A) > 0 ->
-  S = 8 * (16 - size(A)),
-  ghash(H, <<>>, C, mult(exor(X, <<A/binary, 0:S>>), H), ALength, CLength);
-ghash(H, <<>>, <<Ci:16/binary, C/binary>>, X, ALength, CLength) ->
-  ghash(H, <<>>, C, mult(exor(X, Ci), H), ALength, CLength);
-ghash(H, <<>>, <<C/binary>>, X, ALength, CLength) when size(C) > 0 ->
-  S = 8 * (16 - size(C)),
-  ghash(H, <<>>, <<>>, mult(exor(X, <<C/binary, 0:S>>), H), ALength, CLength);
-ghash(H, <<>>, <<>>, X, ALength, CLength) ->
-  mult(exor(X, <<(8 * ALength):64, (8 * CLength):64>>), H).
+ghash(H, A, C) ->
+  AL = 8 * size(A),
+  CL = 8 * size(C),
+  Data = <<A/binary, 0:((128 - AL rem 128) rem 128), C/binary, 0:((128 - CL rem 128) rem 128), AL:64, CL:64>>,
+  Blocks = [<<X:128>> || <<X:128>> <= Data],
+  lists:foldl(fun(B, X) -> mult(exor(X, B), H) end, <<0:128>>, Blocks).
 
 
 -include_lib("eunit/include/eunit.hrl").
