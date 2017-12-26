@@ -2,7 +2,8 @@
 % Galois Fields and
 % Galois Counter Mode of Operation (GCM)
 %
-% http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.694.695&rep=rep1&type=pdf
+% [1] http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.694.695&rep=rep1&type=pdf
+% [2] https://dl.acm.org/citation.cfm?id=2206251
 %
 -module(galois).
 -export([gcm/5, ghash/3, gmac/3, mult/2, lxor/2]).
@@ -11,7 +12,7 @@
 -define(R, <<2#11100001:8, 0:120>>).
 
 %
-% Algorithm 1. Multiplication in GF(2^128).
+% [1](Algorithm 1) Multiplication in GF(2^128).
 %
 mult(X, Y) -> mult(<<0:128>>, X, Y).
 
@@ -23,17 +24,24 @@ mult_shift(Z, <<V:127, 0:1>>, <<_:1, Y/bitstring>>) -> mult(Z, <<0:1, V:127>>, Y
 mult_shift(Z, <<V:127, 1:1>>, <<_:1, Y/bitstring>>) -> mult(Z, exor(<<0:1, V:127>>, ?R), Y).
 
 %
-% GHASH function as defined by (2).
+% GHASH function as defined by [1](2).
 %
-ghash(H, A, C) ->
-  AL = bit_size(A),
-  CL = bit_size(C),
-  Data = <<A/binary, 0:(mod(-AL, 128)), C/binary, 0:(mod(-CL, 128)), AL:64, CL:64>>,
-  Blocks = [<<X:128>> || <<X:128>> <= Data],
-  lists:foldl(fun(B, X) -> mult(exor(X, B), H) end, <<0:128>>, Blocks).
+ghash(H, A, C) -> ghash(H, join(A, C)).
+
+join(X, Y) ->
+  XL = bit_size(X),
+  YL = bit_size(Y),
+  <<X/binary, 0:(mod(-XL, 128)), Y/binary, 0:(mod(-YL, 128)), XL:64, YL:64>>.
 
 %
-% AES-256-GCM implementation as specified by (1).
+% GHASH function as defined by [2](Algorithm 2).
+%
+ghash(H, Data) ->
+  Blocks = [<<X:128>> || <<X:128>> <= Data],
+  lists:foldl(fun(X, Y) -> mult(exor(Y, X), H) end, <<0:128>>, Blocks).
+
+%
+% AES-256-GCM implementation as specified by [1](1).
 %
 gcm(K, IV, A, P, TLength) ->
   EK = fun(X) -> enc(K, X) end,
