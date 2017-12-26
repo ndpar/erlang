@@ -53,9 +53,13 @@ gcm(K, IV, A, P, TLength) ->
       {Yi, <<C/binary, (lxor(B, EK(Yi)))/binary>>}
     end,
     {Y0, <<>>},
-    [<<X:128>> || <<X:128>> <= P]),
+    blocks(P, 16)),
   CipherTag = lxor(ghash(H, A, CipherText), EK(Y0)),
   {CipherText, <<CipherTag:TLength/binary>>}.
+
+blocks(P, BlockSize) ->
+  PL = size(P),
+  [<<X:BlockSize/binary>> || <<X:BlockSize/binary>> <= P] ++ [binary_part(P, {PL, -(PL rem BlockSize)})].
 
 %
 % GMAC
@@ -145,6 +149,15 @@ nist_256_96_0_128_128_test() ->
   ?assertEqual(<<>>, CipherText),
   ?assertEqual(<<16#3E5D486AA2E30B22E040B85723A06E76:128>>, CipherTag).
 
+nist_256_96_104_0_128_test() ->
+  K = <<16#82c4f12eeec3b2d3d157b0f992d292b237478d2cecc1d5f161389b97f999057a:256>>,
+  A = <<>>,
+  P = <<16#982a296ee1cd7086afad976945:104>>,
+  IV = <<16#7b40b20f5f397177990ef2d1:96>>,
+  {CipherText, CipherTag} = gcm(K, IV, A, P, 16),
+  ?assertEqual(<<16#ec8e05a0471d6b43a59ca5335f:104>>, CipherText),
+  ?assertEqual(<<16#113ddeafc62373cac2f5951bb9165249:128>>, CipherTag).
+
 nist_256_96_128_0_128_test() ->
   K = <<16#31bdadd96698c204aa9ce1448ea94ae1fb4a9a0b3c9d773b51bb1822666b8f22:256>>,
   A = <<>>,
@@ -162,6 +175,15 @@ nist_256_96_128_128_128_test() ->
   {CipherText, CipherTag} = gcm(K, IV, A, P, 16),
   ?assertEqual(<<16#8995AE2E6DF3DBF96FAC7B7137BAE67F:128>>, CipherText),
   ?assertEqual(<<16#ECA5AA77D51D4A0A14D9C51E1DA474AB:128>>, CipherTag).
+
+nist_256_96_408_160_120_test() ->
+  K = <<16#f16202e6f3a04244cea18292f570217e3152571017801bcb6460d8f0a9a61a8b:256>>,
+  A = <<16#dd288bd757da22c1f05b639e84dc554fc8c7c620:160>>,
+  P = <<16#f7c12daf7faec4e66e15079c1dd4ed6123ba2ca63e3b4f342fccc33f57218860b6abf3cfe6440bc2f67d89e3ddd06452ef76ee:408>>,
+  IV = <<16#4fd8084392ac2e241d13477c:96>>,
+  {CipherText, CipherTag} = gcm(K, IV, A, P, 15),
+  ?assertEqual(<<16#71060f9a2f04568c32db3e52744df78c1bbc38d90616ecc8626049fe8f80988d9ca47bc116f031117d6d269b05df8a876234df:408>>, CipherText),
+  ?assertEqual(<<16#7f1f0e4c113549c462e65709403ab8:120>>, CipherTag).
 
 %
 % Auxiliary tests
