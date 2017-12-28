@@ -6,13 +6,15 @@ neighbours({X, Y}) ->
 
 next_step(Cells) ->
     Nbs = lists:flatmap(fun neighbours/1, sets:to_list(Cells)),
-    NewCells = [C || {C, N} <- dict:to_list(frequencies(Nbs)),
+    NewCells = [C || {C, N} <- maps:to_list(frequencies(Nbs)),
                      (N == 3) orelse ((N == 2) andalso sets:is_element(C, Cells))],
     sets:from_list(NewCells).
 
-frequencies(List) -> frequencies(List, dict:new()).
-frequencies([], Acc) -> Acc;
-frequencies([X|Xs], Acc) -> frequencies(Xs, dict:update_counter(X, 1, Acc)).
+frequencies(List) ->
+    lists:foldl(fun update_count/2, #{}, List).
+
+update_count(X, Map) ->
+    maps:update_with(X, fun(C) -> C + 1 end, 1, Map).
 
 %
 % Unit tests
@@ -21,7 +23,7 @@ frequencies([X|Xs], Acc) -> frequencies(Xs, dict:update_counter(X, 1, Acc)).
 -include_lib("eunit/include/eunit.hrl").
 
 frequencies_test() ->
-    ?assertEqual(dict:from_list([{1,2}, {2,2}, {3,3}, {4,1}]),
+    ?assertEqual(#{1=>2, 2=>2, 3=>3, 4=>1},
         frequencies([1, 2, 3, 2, 3, 4, 1, 3])).
 
 neighbours_test() ->
