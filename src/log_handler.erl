@@ -14,7 +14,7 @@ init(File) ->
 terminate(Fd) -> file:close(Fd).
 
 handle_event({Action, Id, Event}, Fd) ->
-    {MegaSec, Sec, MicroSec} = now(),
+    {MegaSec, Sec, MicroSec} = erlang:timestamp(),
     io:format(Fd, "~w,~w,~w,~w,~w,~p~n", [MegaSec, Sec, MicroSec, Action, Id, Event]),
     Fd;
 
