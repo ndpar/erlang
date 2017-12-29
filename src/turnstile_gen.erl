@@ -2,44 +2,54 @@
 %% See also: turnstile.erl
 %%
 -module(turnstile_gen).
--export([start/0]).
+-export([start/0, stop/0]).
 -export([coin/0, pass/0]).
--export([init/1, locked/3, unlocked/3]).
--behaviour(gen_fsm).
+-export([init/1, callback_mode/0, locked/3, unlocked/3]).
+-behaviour(gen_statem).
 
 % Start/stop functions
 
 start() ->
-    gen_fsm:start_link({local, ?MODULE}, ?MODULE, [], []).
+    gen_statem:start_link({local, ?MODULE}, ?MODULE, [], []).
+
+stop() ->
+    gen_statem:stop(?MODULE).
 
 % Functional interface
 
 coin() ->
-    gen_fsm:sync_send_event(?MODULE, coin).
+    gen_statem:call(?MODULE, coin).
 
 pass() ->
-    gen_fsm:sync_send_event(?MODULE, pass).
+    gen_statem:call(?MODULE, pass).
 
 % Callback functions
 
 init(_) ->
     {ok, locked, []}.
 
-locked(coin, _, _) ->
-    {reply, unlock(), unlocked, []};
+callback_mode() ->
+    state_functions.
 
-locked(pass, _, _) ->
-    {reply, alarm(), locked, []}.
+locked({call, From}, coin, _) ->
+    do_unlock(),
+    {next_state, unlocked, [], {reply, From, unlocked}};
 
-unlocked(coin, _, _) ->
-    {reply, thankyou(), unlocked, []};
+locked({call, From}, pass, _) ->
+    do_alarm(),
+    {keep_state, [], {reply, From, locked}}.
 
-unlocked(pass, _, _) ->
-    {reply, lock(), locked, []}.
+unlocked({call, From}, coin, _) ->
+    do_thankyou(),
+    {keep_state, [], {reply, From, unlocked}};
+
+unlocked({call, From}, pass, _) ->
+    do_lock(),
+    {next_state, locked, [], {reply, From, locked}}.
 
 % Actions
 
-alarm() -> io:format("You shall not pass!~n").
-unlock() -> io:format("Unlocking...~n").
-lock() -> io:format("Locking...~n").
-thankyou() -> io:format("Thank you for donation~n").
+do_alarm() -> io:format("You shall not pass!~n").
+do_unlock() -> io:format("Unlocking...~n").
+do_lock() -> io:format("Locking...~n").
+do_thankyou() -> io:format("Thank you for your donation~n").
