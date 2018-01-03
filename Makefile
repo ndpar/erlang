@@ -11,6 +11,11 @@ all: beam
 
 beam: ${MODS:%.erl=%.beam}
 
+test:
+	erl -noshell -pa ${EBIN_DIR} \
+		-eval 'eunit:test("${EBIN_DIR}",[verbose])' \
+		-s init stop
+
 clean:
 	rm -rf $(EBIN_DIR)/*.beam $(EBIN_DIR)/erl_crash.dump
 
