@@ -18,7 +18,7 @@ is_loaded(Module) -> lists:member(Module, all_loaded()).
 %
 % Returns a list of functions exported by the Module.
 %
-exported(Module) -> proplists:get_value(exports, Module:module_info()).
+exported(Module) -> Module:module_info(exports).
 
 
 -include_lib("eunit/include/eunit.hrl").
