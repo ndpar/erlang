@@ -2,8 +2,34 @@
 % J. Armstrong, Programming Erlang, Chapter 7
 %
 -module(bin).
+-export([lxor/1, lxor/2]).
 -export([reverse_bytes/1, reverse_bits/1]).
 -export([term_to_packet/1, packet_to_term/1]).
+
+
+% Left XOR
+lxor(<<X/binary>>, <<Y/binary>>) ->
+  Length = min(size(X), size(Y)),
+  crypto:exor(binary:part(X, 0, Length), binary:part(Y, 0, Length)).
+
+lxor([H | T]) ->
+  F = fun(X, Acc) -> lxor(hexstr_to_bin(X), Acc) end,
+  bin_to_hexstr(lists:foldl(F, hexstr_to_bin(H), T)).
+
+%
+% Converts hexadecimal string to binary.
+% The string length is expected to be even.
+%
+hexstr_to_bin(String) ->
+  0 = length(String) rem 2,
+  <<1:8, Bin/binary>> = binary:encode_unsigned(list_to_integer([$1 | String], 16)),
+  Bin.
+
+%
+% Converts binary to hexadecimal string.
+%
+bin_to_hexstr(Bin) ->
+  binary_to_list(<<<<Y>> || <<X:4>> <= Bin, Y <- integer_to_list(X, 16)>>).
 
 
 reverse_bytes(B) ->
@@ -26,6 +52,19 @@ packet_to_term(<<Header:32, Length:32, Data/binary>>) ->
 
 
 -include_lib("eunit/include/eunit.hrl").
+
+hexstr_to_bin_test() ->
+  ?assertEqual(<<0, 18, 52, 86, 120, 144, 171, 205, 239>>, hexstr_to_bin("001234567890ABCDEF")).
+
+bin_to_hexstr_test() ->
+  ?assertEqual("001234567890ABCDEF", bin_to_hexstr(<<0, 18, 52, 86, 120, 144, 171, 205, 239>>)).
+
+lxor_test() ->
+  ?assertEqual("94D5513AC50DFF660F9FDE299DF35718",
+    lxor(["E20106D7CD0DF0761E8DCD3D88E54000", "76D457ED08000F101112131415161718"])),
+  ?assertEqual("94D5513AC50D",
+    lxor(["E20106D7CD0DF0761E8DCD3D88E54000", "76D457ED0800"])).
+
 
 reverse_bytes_test() ->
   ?assertEqual(<<12, 34, 56, 78>>, reverse_bytes(<<78, 56, 34, 12>>)).

@@ -6,8 +6,9 @@
 % [2] https://dl.acm.org/citation.cfm?id=2206251
 %
 -module(galois).
--export([gcm/5, ghash/3, gmac/3, mult/2, lxor/2]).
+-export([gcm/5, ghash/3, gmac/3, mult/2]).
 -import(crypto, [exor/2]).
+-import(bin, [lxor/2]).
 
 -define(R, <<2#11100001:8, 0:120>>).
 
@@ -79,11 +80,6 @@ init_counter(IV, _) when bit_size(IV) =:= 96 -> <<IV/binary, 1:32>>;
 init_counter(IV, H) -> ghash(H, <<>>, IV).
 
 incr(<<Nonce:12/binary, Counter:32>>) -> <<Nonce/binary, (Counter + 1):32>>.
-
-% Left XOR
-lxor(<<X/binary>>, <<Y/binary>>) ->
-  Length = min(size(X), size(Y)),
-  crypto:exor(binary:part(X, 0, Length), binary:part(Y, 0, Length)).
 
 % Single block AES encryption for key K
 enc(K, P) -> crypto:block_encrypt(aes_ecb, K, P).
