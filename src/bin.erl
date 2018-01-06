@@ -1,5 +1,5 @@
 %
-% J. Armstrong, Programming Erlang, Chapter 7
+% Various functions to work on binaries.
 %
 -module(bin).
 -export([lxor/1, lxor/2]).
@@ -7,7 +7,8 @@
 -export([term_to_packet/1, packet_to_term/1]).
 
 
-% Left XOR
+% Left XOR.
+% E.g. ABCDEF xor 1234 = B9F9
 -spec lxor(binary(), binary()) -> binary().
 
 lxor(X, Y) ->
@@ -41,6 +42,10 @@ hexstr_to_bin(String) ->
 bin_to_hexstr(Bin) ->
   binary_to_list(<<<<Y>> || <<X:4>> <= Bin, Y <- integer_to_list(X, 16)>>).
 
+
+%
+% J. Armstrong, Programming Erlang, Chapter 7
+%
 
 reverse_bytes(B) ->
   list_to_binary(lists:reverse(binary_to_list(B))).
