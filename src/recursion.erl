@@ -14,9 +14,8 @@
          merge/2,
          msort/1,
          print/1,
-         qsort/1,
+         qsort/1, pqsort/1, pqsort_loop/2,
          reverse/1,
-         split/1,
          sum/1, sum/2]).
 
 bump(List) -> bump_acc(List, []).
@@ -62,11 +61,6 @@ flatten([]) -> [];
 flatten([H | T]) -> flatten(H) ++ flatten(T);
 flatten(X) -> [X].
 
-split(List) -> split_acc(List, {[],[]}).
-split_acc([], Acc) -> Acc;
-split_acc([F,S | Tail], {First, Scnd}) -> split_acc(Tail, {First ++ [F], Scnd ++ [S]});
-split_acc([H], {First, Scnd}) -> {First ++ [H], Scnd}.
-
 merge(Xs, Ys) -> lists:reverse(mergeL(Xs,Ys,[])).
 mergeL([X|Xs],Ys,Zs) -> mergeR(Xs,Ys,[X|Zs]);
 mergeL([],[],Zs) -> Zs.
@@ -76,11 +70,30 @@ mergeR([],[],Zs) -> Zs.
 qsort([]) -> [];
 qsort([H | Tail]) -> qsort([Y || Y <- Tail, Y < H]) ++ [H] ++ qsort([Y || Y <- Tail, Y >= H]).
 
+% Parallel Quicksort.
+pqsort([]) -> [];
+pqsort([H | Tail]) ->
+    Left = spawn(?MODULE, pqsort_loop, [self(), [Y || Y <- Tail, Y < H]]),
+    Right = spawn(?MODULE, pqsort_loop, [self(), [Y || Y <- Tail, Y >= H]]),
+    receive
+        {Left, LSorted} -> ok
+    end,
+    receive
+        {Right, RSorted} -> ok
+    end,
+    LSorted ++ [H | RSorted].
+
+pqsort_loop(From, List) ->
+    case List of
+        [] -> From ! {self(), List};
+        _ -> From ! {self(), pqsort(List)}
+    end.
+
 % http://en.wikipedia.org/wiki/Merge_sort
 msort([]) -> [];
 msort([X]) -> [X];
 msort(List) ->
-    {Left, Right} = split(List),
+    {Left, Right} = lists:split(trunc(length(List)/2), List),
     merge_ordered(msort(Left), msort(Right)).
 
 merge_ordered(Left, Right) -> merge_ordered_acc(Left, Right, []).

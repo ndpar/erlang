@@ -37,11 +37,6 @@ concatenate_test() ->
 flatten_test() ->
     ?assertEqual([1,2,3,4,5,6], recursion:flatten([[1,[2,[3],[]]], [[[4]]], [5,6]])).
 
-split_test_() -> [
-    ?_assertEqual({[1,3], [2,4]}, recursion:split([1,2,3,4])),
-    ?_assertEqual({[1,3], [2]}, recursion:split([1,2,3]))
-].
-
 merge_test_() -> [
     ?_assertEqual([1,2,3,4], recursion:merge([1,3], [2,4])),
     ?_assertEqual([1,2,3], recursion:merge([1,3], [2]))
@@ -49,6 +44,9 @@ merge_test_() -> [
 
 qsort_test() ->
     ?assertEqual([1,2,3,4,5,6], recursion:qsort([1,6,2,5,3,4])).
+
+pqsort_test() ->
+    ?assertEqual([1,2,3,4,5,6], recursion:pqsort([1,6,2,5,3,4])).
 
 msort_test_() -> [
     ?_assertEqual([], recursion:msort([])),
