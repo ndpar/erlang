@@ -13,8 +13,11 @@
 -define(R, <<2#11100001:8, 0:120>>).
 
 %
-% [1](Algorithm 1) Multiplication in GF(2^128).
+% Multiplication in GF(2^128).
+% See [1](Algorithm 1)
 %
+-spec mult(binary(), binary()) -> binary().
+
 mult(X, Y) -> mult(<<0:128>>, X, Y).
 
 mult(Z, _, <<>>) -> Z;

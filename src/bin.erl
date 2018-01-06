@@ -8,9 +8,15 @@
 
 
 % Left XOR
-lxor(<<X/binary>>, <<Y/binary>>) ->
+-spec lxor(binary(), binary()) -> binary().
+
+lxor(X, Y) ->
   Length = min(size(X), size(Y)),
   crypto:exor(binary:part(X, 0, Length), binary:part(Y, 0, Length)).
+
+% Left XOR
+% Can be used from escript/shell.
+-spec lxor([string()]) -> string().
 
 lxor([H | T]) ->
   F = fun(X, Acc) -> lxor(hexstr_to_bin(X), Acc) end,
@@ -20,6 +26,8 @@ lxor([H | T]) ->
 % Converts hexadecimal string to binary.
 % The string length is expected to be even.
 %
+-spec hexstr_to_bin(string()) -> binary().
+
 hexstr_to_bin(String) ->
   0 = length(String) rem 2,
   <<1:8, Bin/binary>> = binary:encode_unsigned(list_to_integer([$1 | String], 16)),
@@ -28,6 +36,8 @@ hexstr_to_bin(String) ->
 %
 % Converts binary to hexadecimal string.
 %
+-spec bin_to_hexstr(binary()) -> string().
+
 bin_to_hexstr(Bin) ->
   binary_to_list(<<<<Y>> || <<X:4>> <= Bin, Y <- integer_to_list(X, 16)>>).
 
