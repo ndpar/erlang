@@ -3,6 +3,7 @@
 %
 -module(bin).
 -export([lxor/1, lxor/2]).
+-export([bin_to_hexstr/1, hexstr_to_bin/1]).
 -export([reverse_bytes/1, reverse_bits/1]).
 -export([term_to_packet/1, packet_to_term/1]).
 
