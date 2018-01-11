@@ -1,0 +1,15 @@
+{application, ndpar_lib,
+ [{description, "My Erlang library"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {applications,
+   [kernel,
+    stdlib
+   ]},
+  {env,[]},
+  {modules, []},
+
+  {maintainers, ["Andrey Paramonov"]},
+  {licenses, ["Apache 2.0"]},
+  {links, [{"GitHub", "https://github.com/ndpar/erlang"}]}
+ ]}.

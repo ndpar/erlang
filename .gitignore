@@ -1,6 +1,7 @@
 .deps_plt
 .eunit
 *.beam
+_build
 /ebin
 /temp
 /temp2
