@@ -1,5 +1,5 @@
 -module(maths).
--export([egcd/2, inv_mod/2, pow/2, primes_upto/1]).
+-export([egcd/2, inv_mod/2, mod/2, pow/2, primes_upto/1]).
 
 %%
 %% Extended Euclidean Algorithm to compute GCD.
@@ -21,6 +21,13 @@ egcd(C, D, Uc, Vc, Ud, Vd) ->
 inv_mod(B, P) when 0 < B, 0 < P ->
   {1, U, _} = egcd(B, P),
   U.
+
+%%
+%% mod that works properly on negative integers.
+%%
+-spec mod(integer(), pos_integer()) -> non_neg_integer().
+
+mod(A, M) -> (A rem M + M) rem M.
 
 %%
 %% Integer power of another integer
@@ -61,6 +68,12 @@ egcd_test() ->
 
 inv_mod_test() ->
   ?assertEqual(79, inv_mod(74, 167)).
+
+mod_test() ->
+  ?assertEqual(1, mod(15, 7)),
+  ?assertEqual(2, mod(-5, 7)),
+  ?assertEqual(0, mod(0, 17)),
+  ?assertEqual(-5, -5 rem 7).
 
 pow_test() ->
   ?assertEqual(1048576, pow(2, 20)).

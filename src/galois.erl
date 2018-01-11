@@ -7,8 +7,9 @@
 %
 -module(galois).
 -export([gcm/5, ghash/3, gmac/3, mult/2]).
--import(crypto, [exor/2]).
 -import(bin, [lxor/2]).
+-import(crypto, [exor/2]).
+-import(maths, [mod/2]).
 
 -define(R, <<2#11100001:8, 0:120>>).
 
@@ -75,9 +76,6 @@ gmac(K, Nonce, A) ->
 %
 % Utility functions
 %
-
-% mod that works properly on negative integers
-mod(X, Y) -> (X rem Y + Y) rem Y.
 
 init_counter(IV, _) when bit_size(IV) =:= 96 -> <<IV/binary, 1:32>>;
 init_counter(IV, H) -> ghash(H, <<>>, IV).
