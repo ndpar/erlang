@@ -2,10 +2,20 @@
 % Various functions to work on binaries.
 %
 -module(bin).
+-export([integer_to_bitstring/1]).
 -export([lxor/1, lxor/2]).
 -export([bin_to_hexstr/1, hexstr_to_bin/1]).
 -export([reverse_bytes/1, reverse_bits/1]).
 -export([term_to_packet/1, packet_to_term/1]).
+
+
+-spec integer_to_bitstring(non_neg_integer()) -> binary().
+
+integer_to_bitstring(Int) -> trim_bitstring(binary:encode_unsigned(Int)).
+
+trim_bitstring(<<>>) -> <<>>;
+trim_bitstring(<<1:1, _/bitstring>> = B) -> B;
+trim_bitstring(<<0:1, B/bitstring>>) -> trim_bitstring(B).
 
 
 % Left XOR.
@@ -67,7 +77,15 @@ packet_to_term(<<Header:32, Length:32, Data/binary>>) ->
   binary_to_term(<<Header:32, Data:Length/binary>>).
 
 
+%% =============================================================================
+%% Unit tests
+%% =============================================================================
+
 -include_lib("eunit/include/eunit.hrl").
+
+integer_to_bitstring_test() ->
+  ?assertEqual(<<>>, integer_to_bitstring(0)),
+  ?assertEqual(<<2#10001100:8, 0:2>>, integer_to_bitstring(560)).
 
 hexstr_to_bin_test() ->
   ?assertEqual(<<0, 18, 52, 86, 120, 144, 171, 205, 239>>, hexstr_to_bin("001234567890ABCDEF")).

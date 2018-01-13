@@ -29,7 +29,7 @@ factor_out(S, T) -> factor_out(S div 2, T + 1).
 %%
 miller_rabin(N, S, T, K) when K < 128 ->
   A = maths:random(2, N - 1),
-  case maths:modexp(A, S, N) of
+  case maths:mod_exp(A, S, N) of
     1 -> miller_rabin(N, S, T, K + 2);
     V -> case mr_squaring(0, V, N, T) of
            composite -> false;
@@ -44,7 +44,7 @@ miller_rabin(_, _, _, _) -> true.
 %%
 mr_squaring(_I, V, N, _T) when V =:= N - 1 -> candidate;
 mr_squaring(I, _V, _N, T) when I =:= T - 1 -> composite;
-mr_squaring(I, V, N, T) -> mr_squaring(I + 1, maths:modexp(V, 2, N), N, T).
+mr_squaring(I, V, N, T) -> mr_squaring(I + 1, maths:mod_exp(V, 2, N), N, T).
 
 
 %%

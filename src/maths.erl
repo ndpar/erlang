@@ -2,7 +2,7 @@
 %% Math functions missing in the standard math module.
 %%
 -module(maths).
--export([egcd/2, mod/2, modexp/3, modinv/2, pow/2, random/2]).
+-export([egcd/2, mod/2, mod_exp/3, mod_inv/2, pow/2, random/2]).
 
 %%
 %% @doc Extended Euclidean Algorithm to compute GCD.
@@ -19,22 +19,30 @@ egcd(C, D, Uc, Vc, Ud, Vd) ->
 %%
 %% @doc Fast modular exponentiation by repeated squaring.
 %%
--spec modexp(Base :: pos_integer(), Exp :: non_neg_integer(), Mod :: pos_integer()) -> non_neg_integer().
+%% CLRS, chapter 31.6.
+%%
+%% If Base, Exp, and Mod are b-bit numbers, then the total
+%% number of arithmetic operations required is O(b) and
+%% the total number of bit operations required is O(b^3).
+%%
+-spec mod_exp(Base :: non_neg_integer(), Exp :: non_neg_integer(), Mod :: pos_integer()) -> non_neg_integer().
 
-modexp(_Base, 0, _Mod) -> 1;
-modexp(Base, Exp, Mod) when Exp rem 2 =:= 0 ->
-  square(modexp(Base, Exp div 2, Mod)) rem Mod;
-modexp(Base, Exp, Mod) ->
-  Base * modexp(Base, Exp - 1, Mod) rem Mod.
+mod_exp(Base, Exp, Mod) ->
+  mod_exp(Base, bin:integer_to_bitstring(Exp), 0, 1, Mod).
 
-square(A) -> A * A.
+mod_exp(_A, <<>>, _C, D, _N) -> D;
+mod_exp(A, <<0:1, B/bitstring>>, C, D, N) ->
+  mod_exp(A, B, 2 * C, D * D rem N, N);
+mod_exp(A, <<1:1, B/bitstring>>, C, D, N) ->
+  mod_exp(A, B, 2 * C + 1, D * D * A rem N, N).
+
 
 %%
 %% @doc Inverse of B modulo prime P.
 %%
--spec modinv(B :: pos_integer(), P :: pos_integer()) -> pos_integer().
+-spec mod_inv(B :: pos_integer(), P :: pos_integer()) -> pos_integer().
 
-modinv(B, P) when 0 < B, 0 < P ->
+mod_inv(B, P) when 0 < B, 0 < P ->
   {1, U, _} = egcd(B, P),
   U.
 
@@ -76,11 +84,16 @@ mod_test() ->
   ?assertEqual(0, mod(0, 17)),
   ?assertEqual(-5, -5 rem 7).
 
-modexp_test() ->
-  ?assertEqual(16, modexp(12, 34, 56)).
+mod_exp_test() ->
+  ?assertEqual(1, mod_exp(0, 0, 5)),
+  ?assertEqual(1, mod_exp(1, 1, 5)),
+  ?assertEqual(1, mod_exp(7, 560, 561)),
+  ?assertEqual(16, mod_exp(12, 34, 56)),
+  ?assertEqual(199, mod_exp(27, 35, 569)),
+  ?assertEqual(81, mod_exp(12345, 67890, 103)).
 
-modinv_test() ->
-  ?assertEqual(79, modinv(74, 167)).
+mod_inv_test() ->
+  ?assertEqual(79, mod_inv(74, 167)).
 
 pow_test() ->
   ?assertEqual(1048576, pow(2, 20)).
