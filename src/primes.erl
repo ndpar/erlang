@@ -1,3 +1,6 @@
+%%
+%% Various functions to work with prime numbers.
+%%
 -module(primes).
 -author("Andrey Paramonov").
 
@@ -75,7 +78,7 @@ sieve([], _N) -> [].
 -spec random_prime(L :: pos_integer(), U :: pos_integer()) -> pos_integer().
 
 random_prime(L, U) when 2 < L, L =< U ->
-  random_prime(L, U, 100 * (math:log2(U) + 1) - 1).
+  random_prime(L, U, 100 * (maths:ilog2(U) + 1) - 1).
 
 random_prime(L, U, R) when 0 < R ->
   N = maths:random(L, U),
