@@ -58,13 +58,15 @@ mod_exp(A, <<1:1, B/bitstring>>, C, D, N) ->
 
 
 %%
-%% @doc Inverse of B modulo prime P.
+%% @doc Inverse of B modulo N.
 %%
--spec mod_inv(B :: pos_integer(), P :: pos_integer()) -> pos_integer().
+-spec mod_inv(B :: pos_integer(), N :: pos_integer()) -> pos_integer().
 
-mod_inv(B, P) when 0 < B, 0 < P ->
-  {1, U, _} = egcd(B, P),
-  U.
+mod_inv(B, N) when 0 < B, 0 < N ->
+  case mod_linear_equation_solver(B, 1, N) of
+    error -> error;
+    [A] -> A
+  end.
 
 %%
 %% @doc Solves equation Ax = B (mod N) or returns error
@@ -137,8 +139,12 @@ mod_exp_test_() -> [
   ?_assertEqual(81, mod_exp(12345, 67890, 103)),
   ?_assertEqual(81, crypto:bytes_to_integer(crypto:mod_pow(12345, 67890, 103)))].
 
-mod_inv_test() ->
-  ?assertEqual(79, mod_inv(74, 167)).
+mod_inv_test_() -> [
+  ?_assertEqual(error, mod_inv(3, 60)),
+  ?_assertEqual(27, crypto:bytes_to_integer(crypto:mod_pow(3, -1, 60))), %% sic!
+  ?_assertEqual(43, mod_inv(7, 60)),
+  ?_assertEqual(43, crypto:bytes_to_integer(crypto:mod_pow(7, -1, 60))),
+  ?_assertEqual(79, mod_inv(74, 167))].
 
 pow_test() ->
   ?assertEqual(1048576, pow(2, 20)).
