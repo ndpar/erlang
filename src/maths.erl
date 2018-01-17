@@ -4,7 +4,7 @@
 -module(maths).
 -author("Andrey Paramonov").
 
--export([egcd/2, ilog2/1, mod/2, mod_exp/3, mod_inv/2, pow/2, random/2]).
+-export([egcd/2, ilog2/1, mod/2, mod_exp/3, mod_inv/2, mod_linear_equation_solver/3, pow/2, random/2]).
 
 %%
 %% @doc Extended Euclidean Algorithm to compute GCD.
@@ -28,6 +28,13 @@ ilog2(N) when 0 < N ->
   bit_size(B) - 1.
 
 %%
+%% @doc mod that works properly on negative integers.
+%%
+-spec mod(integer(), pos_integer()) -> non_neg_integer().
+
+mod(A, M) -> (A rem M + M) rem M.
+
+%%
 %% @doc Fast modular exponentiation by repeated squaring.
 %%
 %% CLRS, chapter 31.6.
@@ -35,6 +42,8 @@ ilog2(N) when 0 < N ->
 %% If Base, Exp, and Mod are b-bit numbers, then the total
 %% number of arithmetic operations required is O(b) and
 %% the total number of bit operations required is O(b^3).
+%%
+%% See also: crypto:mod_pow/3 and crypto:bytes_to_integer/1
 %%
 -spec mod_exp(Base :: non_neg_integer(), Exp :: non_neg_integer(), Mod :: pos_integer()) -> non_neg_integer().
 
@@ -58,11 +67,23 @@ mod_inv(B, P) when 0 < B, 0 < P ->
   U.
 
 %%
-%% @doc mod that works properly on negative integers.
+%% @doc Solves equation Ax = B (mod N) or returns error
+%% if the solution does not exist.
 %%
--spec mod(integer(), pos_integer()) -> non_neg_integer().
+%% CLRS, chapter 31.4.
+%%
+-spec mod_linear_equation_solver(integer(), integer(), pos_integer()) -> [non_neg_integer()] | error.
 
-mod(A, M) -> (A rem M + M) rem M.
+mod_linear_equation_solver(A, B, N) ->
+  {D, U, _} = egcd(A, N),
+  mod_linear_equation_solver(B, N, D, U).
+
+mod_linear_equation_solver(B, _, D, _) when B rem D =/= 0 -> error;
+mod_linear_equation_solver(B, N, D, U) ->
+  mod_linear_equation_solver_list(N, D, mod(U * B div D, N)).
+
+mod_linear_equation_solver_list(N, D, X0) ->
+  [mod(X0 + I * N div D, N) || I <- lists:seq(0, D - 1)].
 
 %%
 %% @doc Integer power of another integer
@@ -96,6 +117,11 @@ ilog2_test_() -> [
   ?_assertEqual(2, ilog2(5)),
   ?_assertEqual(20, ilog2(1048576))].
 
+mod_linear_equation_solver_test_() -> [
+  ?_assertEqual(error, mod_linear_equation_solver(2, 3, 4)),
+  ?_assertEqual([6, 16, 26, 36, 46], mod_linear_equation_solver(35, 10, 50)),
+  ?_assertEqual([95, 45], mod_linear_equation_solver(14, 30, 100))].
+
 mod_test_() -> [
   ?_assertEqual(1, mod(15, 7)),
   ?_assertEqual(2, mod(-5, 7)),
@@ -108,7 +134,8 @@ mod_exp_test_() -> [
   ?_assertEqual(1, mod_exp(7, 560, 561)),
   ?_assertEqual(16, mod_exp(12, 34, 56)),
   ?_assertEqual(199, mod_exp(27, 35, 569)),
-  ?_assertEqual(81, mod_exp(12345, 67890, 103))].
+  ?_assertEqual(81, mod_exp(12345, 67890, 103)),
+  ?_assertEqual(81, crypto:bytes_to_integer(crypto:mod_pow(12345, 67890, 103)))].
 
 mod_inv_test() ->
   ?assertEqual(79, mod_inv(74, 167)).
