@@ -4,7 +4,9 @@
 -module(maths).
 -author("Andrey Paramonov").
 
--export([egcd/2, ilog2/1, mod/2, mod_exp/3, mod_inv/2, mod_linear_equation_solver/3, pow/2, random/2]).
+-export([egcd/2, ilog2/1, isqrt/1]).
+-export([mod/2, mod_exp/3, mod_inv/2, mod_linear_equation_solver/3]).
+-export([pow/2, random/2]).
 
 %%
 %% @doc Extended Euclidean Algorithm to compute GCD.
@@ -26,6 +28,29 @@ egcd(C, D, Uc, Vc, Ud, Vd) ->
 ilog2(N) when 0 < N ->
   B = bin:integer_to_bitstring(N),
   bit_size(B) - 1.
+
+%%
+%% @doc Integer square root.
+%% https://en.wikipedia.org/wiki/Integer_square_root#Using_bitwise_operations
+%%
+-spec isqrt(non_neg_integer()) -> non_neg_integer().
+
+isqrt(N) when 0 =< N -> isqrt_shift(N, 2, N bsr 2).
+
+isqrt_shift(N, Shift, 0) -> isqrt_root(N, Shift - 2, 0);
+isqrt_shift(N, Shift, N) -> isqrt_root(N, Shift - 2, 0);
+isqrt_shift(N, Shift, _) ->
+  S = Shift + 2,
+  isqrt_shift(N, S, N bsr S).
+
+isqrt_root(_, Shift, Root) when Shift < 0 -> Root;
+isqrt_root(N, Shift, Root) ->
+  R = Root bsl 1,
+  Candidate = R + 1,
+  if
+    Candidate * Candidate =< N bsr Shift -> isqrt_root(N, Shift - 2, Candidate);
+    true -> isqrt_root(N, Shift - 2, R)
+  end.
 
 %%
 %% @doc mod that works properly on negative integers.
@@ -118,6 +143,18 @@ ilog2_test_() -> [
   ?_assertEqual(2, ilog2(4)),
   ?_assertEqual(2, ilog2(5)),
   ?_assertEqual(20, ilog2(1048576))].
+
+isqrt_test_() -> [
+  ?_assertEqual(0, isqrt(0)),
+  ?_assertEqual(1, isqrt(1)),
+  ?_assertEqual(1, isqrt(2)),
+  ?_assertEqual(1, isqrt(3)),
+  ?_assertEqual(2, isqrt(4)),
+  ?_assertEqual(2, isqrt(5)),
+  ?_assertEqual(10, isqrt(100)),
+  ?_assertEqual(79, isqrt(6241)),
+  ?_assertEqual(79, isqrt(6250)),
+  ?_assertEqual(111111110651, isqrt(12345678910111213141516))].
 
 mod_linear_equation_solver_test_() -> [
   ?_assertEqual(error, mod_linear_equation_solver(2, 3, 4)),
