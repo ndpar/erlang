@@ -4,7 +4,7 @@
 -module(maths).
 -author("Andrey Paramonov").
 
--export([egcd/2, ilog2/1, isqrt/1]).
+-export([egcd/2, gcd/2, ilog2/1, isqrt/1]).
 -export([mod/2, mod_exp/3, mod_inv/2, mod_linear_equation_solver/3]).
 -export([pow/2, random/2]).
 
@@ -19,6 +19,13 @@ egcd(0, D, _, _, Ud, Vd) -> {D, Ud, Vd};
 egcd(C, D, Uc, Vc, Ud, Vd) ->
   Q = D div C,
   egcd(D - Q * C, C, Ud - Q * Uc, Vd - Q * Vc, Uc, Vc).
+
+%%
+%% @doc Euclidean Algorithm to compute GCD.
+%%
+-spec gcd(pos_integer(), pos_integer()) -> pos_integer().
+
+gcd(A, B) -> {GCD, _, _} = egcd(A, B), GCD.
 
 %%
 %% @doc Floor of the logarithm base 2 of the given integer N.

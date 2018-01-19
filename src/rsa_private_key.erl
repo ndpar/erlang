@@ -1,31 +1,29 @@
--module(rsa_private_key).
--author("Andrey Paramonov").
-
--export([factorize_from_d/3, factorize_from_t/2]).
-
-%% =============================================================================
-%% Restoring full private key from partially known private key.
-%% =============================================================================
 %%
-%% RSA public key consists of two integers {n, e}.
-%% RSA private key consists of four integers {p, q, t, d}.
-%% If an attacker knows one of the private integers,
-%% she can restore the other three.
+%% N.Ferguson, B.Schneier, T. Kohno. Cryptography Engineering.
+%% Chapter 12.4.3. The Private Key.
 %%
-%% Simplest case: Attacker knows p. Then q = n / p.
+%% RSA private key consists of four integer values {p, q, t, d}.
+%% The knowledge of any one of these values is sufficient to
+%% compute all the other three.
+%%
+%% Easy case: Attacker knows p (or q). Then q = n / p.
 %% t = (p - 1)(q - 1) / gcd(p - 1, q - 1).
 %% d = e^-1 (mod t).
 %%
-%% Similar case when attacker knows q.
+-module(rsa_private_key).
+-author("Andrey Paramonov").
+
 %%
-%% To play with the functions, use the following commands to generate keys
+%% To play with the functions, the following commands may be useful
+%% if you want to generate real private keys:
+%%
 %% $ openssl genrsa -out private.pem 2048
 %% $ openssl asn1parse -i -in private.pem
 %%
+-export([factorize_from_d/3, factorize_from_t/2]).
 
 %%
-%% If attacker knows d, she can find {p, q}
-%% using this method.
+%% @doc If attacker knows d, she can find {p, q} using this method.
 %%
 -spec factorize_from_d(N :: pos_integer(), E :: pos_integer(), D :: pos_integer()) ->
   {pos_integer(), pos_integer()} | error.
@@ -40,8 +38,7 @@ factorize_from_d(N, E, D, Factor) ->
   end.
 
 %%
-%% If attacker knows t, she can find {p, q}
-%% using this method.
+%% @doc If attacker knows t, she can find {p, q} using this method.
 %%
 -spec factorize_from_t(N :: pos_integer(), T :: pos_integer()) ->
   {pos_integer(), pos_integer()} | error.
