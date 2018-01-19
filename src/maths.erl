@@ -4,7 +4,7 @@
 -module(maths).
 -author("Andrey Paramonov").
 
--export([egcd/2, gcd/2, ilog2/1, isqrt/1]).
+-export([egcd/2, gcd/2, lcm/2, ilog2/1, isqrt/1]).
 -export([mod/2, mod_exp/3, mod_inv/2, mod_linear_equation_solver/3]).
 -export([pow/2, random/2]).
 
@@ -26,6 +26,11 @@ egcd(C, D, Uc, Vc, Ud, Vd) ->
 -spec gcd(pos_integer(), pos_integer()) -> pos_integer().
 
 gcd(A, B) -> {GCD, _, _} = egcd(A, B), GCD.
+
+%%
+%% @doc Least common multiple.
+%%
+lcm(A, B) -> A * B div gcd(A, B).
 
 %%
 %% @doc Floor of the logarithm base 2 of the given integer N.
@@ -143,6 +148,9 @@ random(L, U) -> L + rand:uniform(U - L + 1) - 1.
 
 egcd_test() ->
   ?assertEqual({263, 168, -131}, egcd(91261, 117035)).
+
+lcm_test() ->
+  ?assertEqual(120, lcm(8, 30)).
 
 ilog2_test_() -> [
   ?_assertEqual(0, ilog2(1)),
