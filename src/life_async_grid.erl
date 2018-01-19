@@ -6,7 +6,7 @@
 %%% This implementation can be run step by step, controlled from
 %%% the shell, in which case it preserves the classic game behaviour.
 %%% Or it can be run completely asynchronously until it's stopped by
-%%% `stop` message. In this case the behaviour of the game is
+%%% 'stop' message. In this case the behaviour of the game is
 %%% eventually consistent, meaning that at any particular point
 %%% there might be cells on the grid from different generations,
 %%% which you wouldn't expect in the classic game. However,
@@ -14,7 +14,7 @@
 %%% async game "on average" will be the same as in the classic one.
 %%%
 %%% In either case, the default state of the grid can be examined
-%%% by running `snapshot` command.
+%%% by running 'snapshot' command.
 %%%
 %%% To run the game forever, uncomment line 153.
 %%%
@@ -69,24 +69,24 @@ new_grid(Size) ->
         end,
         new_grid(), cartesian_plane(Size)).
 
-%% @doc Sends `connect` message to all cells.
+%% @doc Sends 'connect' message to all cells.
 %% It's done once during the initialization of the game.
 %% Upon receiving this message, cells will discover their
 %% neighbours and save reference to them.
 connect_all(Grid) ->
     ok = send(Grid, coordinates(Grid), {connect, Grid}).
 
-%% @doc Sends `alive` message to specific cells.
+%% @doc Sends 'alive' message to specific cells.
 %% Upon receiving this message, cells will change their state to alive.
 make_alive(Coords, Grid) ->
     ok = send(Grid, Coords, alive).
 
-%% @doc Sends `start` message to all cells.
+%% @doc Sends 'start' message to all cells.
 %% That will initiate the first step of the game.
 start(Grid) ->
     ok = send(Grid, coordinates(Grid), start).
 
-%% @doc Sends `current_status` message to all cells, requesting
+%% @doc Sends 'current_status' message to all cells, requesting
 %% their status. Blocks until receiving responses from all cells.
 %% Returns coordinates of all live cells together with their
 %% generation numbers.
@@ -101,7 +101,7 @@ snapshot(Grid) ->
                 end
         end, [], All).
 
-%% @doc Sends `stop` message to all cells, forcing them to leave game.
+%% @doc Sends 'stop' message to all cells, forcing them to leave game.
 stop(Grid) ->
     ok = send(Grid, coordinates(Grid), stop).
 

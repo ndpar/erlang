@@ -1,6 +1,6 @@
-%
-% Various functions to work on binaries.
-%
+%%
+%% @doc Various functions to work on binaries.
+%%
 -module(bin).
 -export([integer_to_bitstring/1]).
 -export([lxor/1, lxor/2]).
@@ -9,6 +9,14 @@
 -export([term_to_packet/1, packet_to_term/1]).
 
 
+%%
+%% @doc Returns a bitstring representation of the
+%% given integer with leading zeroes removed.
+%%
+%% E.g. `<<2#1100:4>> = bin:integer_to_bitstring(12).'
+%%
+%% @see binary:encode_unsigned/1.
+%%
 -spec integer_to_bitstring(non_neg_integer()) -> binary().
 
 integer_to_bitstring(Int) -> trim_bitstring(binary:encode_unsigned(Int)).
@@ -17,27 +25,31 @@ trim_bitstring(<<>>) -> <<>>;
 trim_bitstring(<<1:1, _/bitstring>> = B) -> B;
 trim_bitstring(<<0:1, B/bitstring>>) -> trim_bitstring(B).
 
-
-% Left XOR.
-% E.g. ABCDEF xor 1234 = B9F9
+%%
+%% @doc Left XOR.
+%%
+%% E.g. `<<16#B9F9:16>> = bin:lxor(<<16#ABCDEF:24>>, <<16#1234:16>>).'
+%%
 -spec lxor(binary(), binary()) -> binary().
 
 lxor(X, Y) ->
   Length = min(size(X), size(Y)),
   crypto:exor(binary:part(X, 0, Length), binary:part(Y, 0, Length)).
 
-% Left XOR
-% Can be used from escript/shell.
+%%
+%% @doc Left XOR.
+%% Can be used from escript or shell.
+%%
 -spec lxor([string()]) -> string().
 
 lxor([H | T]) ->
   F = fun(X, Acc) -> lxor(hexstr_to_bin(X), Acc) end,
   bin_to_hexstr(lists:foldl(F, hexstr_to_bin(H), T)).
 
-%
-% Converts hexadecimal string to binary.
-% The string length is expected to be even.
-%
+%%
+%% @doc Converts hexadecimal string to binary.
+%% The string length is expected to be even.
+%%
 -spec hexstr_to_bin(string()) -> binary().
 
 hexstr_to_bin(String) ->
@@ -45,9 +57,9 @@ hexstr_to_bin(String) ->
   <<1:8, Bin/binary>> = binary:encode_unsigned(list_to_integer([$1 | String], 16)),
   Bin.
 
-%
-% Converts binary to hexadecimal string.
-%
+%%
+%% @doc Converts binary to hexadecimal string.
+%%
 -spec bin_to_hexstr(binary()) -> string().
 
 bin_to_hexstr(Bin) ->

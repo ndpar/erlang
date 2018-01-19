@@ -1,5 +1,5 @@
 %%
-%% Math functions missing in the standard math module.
+%% @doc Math functions missing in the standard math module.
 %%
 -module(maths).
 -author("Andrey Paramonov").
@@ -10,8 +10,10 @@
 
 %%
 %% @doc Extended Euclidean Algorithm to compute GCD.
+%% This identity holds true: GCD(A, B) = A * U + B * V.
 %%
--spec egcd(pos_integer(), pos_integer()) -> {pos_integer(), pos_integer(), pos_integer()}.
+-spec egcd(A :: pos_integer(), B :: pos_integer()) ->
+  {GCD :: pos_integer(), U :: integer(), V :: integer()}.
 
 egcd(A, B) when 0 < A, 0 < B -> egcd(A, B, 1, 0, 0, 1).
 
@@ -21,21 +23,23 @@ egcd(C, D, Uc, Vc, Ud, Vd) ->
   egcd(D - Q * C, C, Ud - Q * Uc, Vd - Q * Vc, Uc, Vc).
 
 %%
-%% @doc Euclidean Algorithm to compute GCD.
+%% @doc Returns the GCD of two positive integers.
 %%
 -spec gcd(pos_integer(), pos_integer()) -> pos_integer().
 
 gcd(A, B) -> {GCD, _, _} = egcd(A, B), GCD.
 
 %%
-%% @doc Least common multiple.
+%% @doc Returns the least common multiple (LCM) of two positive integers.
 %%
+-spec lcm(pos_integer(), pos_integer()) -> pos_integer().
+
 lcm(A, B) -> A * B div gcd(A, B).
 
 %%
 %% @doc Floor of the logarithm base 2 of the given integer N.
 %%
--spec ilog2(N :: pos_integer()) -> pos_integer().
+-spec ilog2(pos_integer()) -> pos_integer().
 
 ilog2(N) when 0 < N ->
   B = bin:integer_to_bitstring(N),
@@ -43,7 +47,8 @@ ilog2(N) when 0 < N ->
 
 %%
 %% @doc Integer square root.
-%% https://en.wikipedia.org/wiki/Integer_square_root#Using_bitwise_operations
+%% Implemented using bitwise algorithm
+%% (https://en.wikipedia.org/wiki/Integer_square_root#Using_bitwise_operations)
 %%
 -spec isqrt(non_neg_integer()) -> non_neg_integer().
 
@@ -65,7 +70,7 @@ isqrt_root(N, Shift, Root) ->
   end.
 
 %%
-%% @doc mod that works properly on negative integers.
+%% @doc Modulo operation that works properly on negative integers.
 %%
 -spec mod(integer(), pos_integer()) -> non_neg_integer().
 
@@ -80,7 +85,8 @@ mod(A, M) -> (A rem M + M) rem M.
 %% number of arithmetic operations required is O(b) and
 %% the total number of bit operations required is O(b^3).
 %%
-%% See also: crypto:mod_pow/3 and crypto:bytes_to_integer/1
+%% @see crypto:mod_pow/3
+%% @see crypto:bytes_to_integer/1
 %%
 -spec mod_exp(Base :: non_neg_integer(), Exp :: non_neg_integer(), Mod :: pos_integer()) -> non_neg_integer().
 
@@ -127,7 +133,7 @@ mod_linear_equation_solver_list(N, D, X0) ->
 %%
 %% @doc Integer power of another integer
 %%
--spec pow(N :: integer(), E :: non_neg_integer()) -> integer().
+-spec pow(N :: integer(), Exp :: non_neg_integer()) -> integer().
 
 pow(_, 0) -> 1;
 pow(N, E) -> N * pow(N, E - 1).
