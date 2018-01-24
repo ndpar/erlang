@@ -1,7 +1,10 @@
-%% -*- mode: Erlang; fill-column: 75; comment-column: 50; -*-
 {application, mastermind,
- [{description, "Erlang implementation of the Matermind game"},
-  {vsn, "semver"},
-  {modules, []},
-  {registered, []},
-  {applications, [kernel, stdlib]}]}.
+  [{description, "Erlang implementation of the Matermind game"},
+    {vsn, "1.0.0"},
+    {modules, []},
+    {registered, []},
+    {applications, [kernel, stdlib]},
+    {maintainers, ["Andrey Paramonov"]},
+    {licenses, ["Apache 2.0"]},
+    {links, [{"GitHub", "https://github.com/ndpar/erlang/mastermind"}]}
+  ]}.

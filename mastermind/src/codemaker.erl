@@ -18,7 +18,7 @@ random_row() ->
     [r(), r(), r(), r()].
 
 r() ->
-    random:uniform(6).
+    rand:uniform(6).
 
 position_list(Row) ->
     dict:to_list(positions(Row)).

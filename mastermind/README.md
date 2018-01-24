@@ -4,11 +4,11 @@ Erlang implementation of [Matermind](http://en.wikipedia.org/wiki/Mastermind_(bo
 
 ## Build
 
-    $ make
+    $ rebar3 compile
 
 ## Play
 
-    $ make shell
+    $ rebar3 shell
 
     1> codemaker:start().
     true
