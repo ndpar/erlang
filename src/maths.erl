@@ -5,8 +5,24 @@
 -author("Andrey Paramonov").
 
 -export([egcd/2, gcd/2, lcm/2, ilog2/1, isqrt/1]).
+-export([crt_garner/2, crt_solver/2]).
 -export([mod/2, mod_exp/3, mod_inv/2, mod_linear_equation_solver/3]).
+-export([dot_product/2, hadamard_prod/2, pairwise_primes/1, prod/1]).
 -export([pow/2, random/2]).
+
+%%
+%% @doc Hadamard product (a.k.a. Schur product) of two given vectors.
+%%
+-spec hadamard_prod([number()], [number()]) -> [number()].
+
+hadamard_prod(A, B) -> lists:zipwith(fun erlang:'*'/2, A, B).
+
+%%
+%% @doc Dot product (a.k.a. scalar product) of two given vectors.
+%%
+-spec dot_product([number()], [number()]) -> number().
+
+dot_product(A, B) -> lists:sum(hadamard_prod(A, B)).
 
 %%
 %% @doc Extended Euclidean Algorithm to compute GCD.
@@ -69,6 +85,43 @@ isqrt_root(N, Shift, Root) ->
     true -> isqrt_root(N, Shift - 2, R)
   end.
 
+
+%%
+%% @doc Garner's formula to solve particular case of CRT:
+%% `x = a (mod p), x = b (mod q)' where `p' and `q' are primes.
+%%
+%% It gives the same result as `crt_solver([A, B], [P, Q]).'
+%%
+-spec crt_garner({non_neg_integer(), pos_integer()}, {non_neg_integer(), pos_integer()}) -> pos_integer().
+
+crt_garner({A, P}, {B, Q}) ->
+  mod((A - B) * mod_inv(Q, P), P) * Q + B.
+
+%%
+%% @doc Chinese Remainder Theorem solver.
+%% For given vectors A and N, solves the equation `x = A (mod N)'
+%% or returns `error' if the solution does not exist.
+%%
+%% The solution exists when N is a vector of relatively prime numbers.
+%%
+%% See CLRS, Theorem 31.27.
+%%
+-spec crt_solver([non_neg_integer()], [pos_integer()]) -> pos_integer().
+
+crt_solver(A, N) when length(A) =:= length(N) ->
+  try core:zipfold(crtFun(prod(N)), 0, A, N) of
+    Fold -> Fold
+  catch
+    error:badarith -> error
+  end.
+
+crtFun(Prod) ->
+  fun(Acc, A, N) ->
+    M = Prod div N,
+    MInv = maths:mod_inv(M, N),
+    mod(Acc + A * M * MInv, Prod)
+  end.
+
 %%
 %% @doc Modulo operation that works properly on negative integers.
 %%
@@ -112,7 +165,7 @@ mod_inv(B, N) when 0 < B, 0 < N ->
   end.
 
 %%
-%% @doc Solves equation Ax = B (mod N) or returns error
+%% @doc Solves equation ax = b (mod n) or returns `error'
 %% if the solution does not exist.
 %%
 %% CLRS, chapter 31.4.
@@ -131,12 +184,32 @@ mod_linear_equation_solver_list(N, D, X0) ->
   [mod(X0 + I * N div D, N) || I <- lists:seq(0, D - 1)].
 
 %%
+%% @doc Returns `true' if the numbers in the given list
+%% are pairwise relatively prime, otherwise returns `false'.
+%%
+-spec pairwise_primes([pos_integer()]) -> boolean().
+
+pairwise_primes(List) ->
+  Ps = [1 < X andalso 1 < Y andalso gcd(X, Y) =:= 1 || X <- List, Y <- List, X < Y],
+  lists:all(fun(Bool) -> Bool end, Ps).
+
+%%
 %% @doc Integer power of another integer
 %%
 -spec pow(N :: integer(), Exp :: non_neg_integer()) -> integer().
 
 pow(_, 0) -> 1;
-pow(N, E) -> N * pow(N, E - 1).
+pow(N, E) when E rem 2 =:= 0 ->
+  M = pow(N, E div 2),
+  M * M;
+pow(N, E) when 0 < E -> N * pow(N, E - 1).
+
+%%
+%% @doc Returns the product of the numbers in the given list.
+%%
+-spec prod([number()]) -> number().
+
+prod(Numbers) -> lists:foldl(fun erlang:'*'/2, 1, Numbers).
 
 %%
 %% @doc Returns a random integer uniformly distributed in the interval [L, U].
@@ -151,6 +224,19 @@ random(L, U) -> L + rand:uniform(U - L + 1) - 1.
 %% =============================================================================
 
 -include_lib("eunit/include/eunit.hrl").
+
+crt_solver_test() ->
+  ?_assertEqual(crt_solver([4, 5], [7, 11]), crt_garner({4, 7}, {5, 11})).
+
+crt_solver_test_() -> [
+  ?_assertEqual(21, crt_solver([21], [23])),
+  ?_assertEqual(49, crt_solver([4, 5], [5, 11])),
+  ?_assertEqual(10, crt_solver([1, 2, 3], [9, 8, 7])),
+  ?_assertEqual(error, crt_solver([1, 3], [4, 6])) % it can be 9 or 21
+].
+
+dot_product_test() ->
+  ?assertEqual(3, dot_product([1, 3, -5], [4, -2, -1])).
 
 egcd_test() ->
   ?assertEqual({263, 168, -131}, egcd(91261, 117035)).
