@@ -225,13 +225,14 @@ random(L, U) -> L + rand:uniform(U - L + 1) - 1.
 
 -include_lib("eunit/include/eunit.hrl").
 
-crt_solver_test() ->
+crt_garner_test() ->
   ?_assertEqual(crt_solver([4, 5], [7, 11]), crt_garner({4, 7}, {5, 11})).
 
 crt_solver_test_() -> [
   ?_assertEqual(21, crt_solver([21], [23])),
   ?_assertEqual(49, crt_solver([4, 5], [5, 11])),
   ?_assertEqual(10, crt_solver([1, 2, 3], [9, 8, 7])),
+  ?_assertEqual(8458, crt_solver([3, 5], [89, 107])),
   ?_assertEqual(error, crt_solver([1, 3], [4, 6])) % it can be 9 or 21
 ].
 
@@ -241,8 +242,9 @@ dot_product_test() ->
 egcd_test() ->
   ?assertEqual({263, 168, -131}, egcd(91261, 117035)).
 
-lcm_test() ->
-  ?assertEqual(120, lcm(8, 30)).
+lcm_test_() -> [
+  ?_assertEqual(4100, lcm(82, 100)),
+  ?_assertEqual(120, lcm(8, 30))].
 
 ilog2_test_() -> [
   ?_assertEqual(0, ilog2(1)),
@@ -285,6 +287,7 @@ mod_exp_test_() -> [
 
 mod_inv_test_() -> [
   ?_assertEqual(error, mod_inv(3, 60)),
+  ?_assertEqual(1367, mod_inv(3, 4100)),
   ?_assertEqual(27, crypto:bytes_to_integer(crypto:mod_pow(3, -1, 60))), %% sic!
   ?_assertEqual(43, mod_inv(7, 60)),
   ?_assertEqual(43, crypto:bytes_to_integer(crypto:mod_pow(7, -1, 60))),

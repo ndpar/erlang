@@ -127,7 +127,9 @@ msg_to_rsa_number(N, M) ->
 %%
 -spec sign_with_rsa(SK :: {N :: pos_integer(), D :: pos_integer()}, M :: binary()) -> pos_integer().
 
-sign_with_rsa({N, D}, M) ->
+sign_with_rsa({N, D}, M) when is_integer(M) ->
+  sign_with_rsa({N, D}, binary:encode_unsigned(M));
+sign_with_rsa({N, D}, M) when is_binary(M) ->
   S = msg_to_rsa_number(N, M),
   maths:mod_exp(S, D, N).
 
@@ -180,3 +182,23 @@ sign_verify_test_() ->
     ?_assertEqual(Sig, sign_with_rsa({N, D3}, M)),
     ?_assertEqual(ok, verify_rsa_signature({N, 3}, M, Sig))
   ].
+
+signature_product_test() ->
+  N = (P = 71) * (Q = 89),
+  ?assertEqual(6319, N),
+
+  T = maths:lcm(P - 1, Q - 1),
+  ?assertEqual(3080, T),
+
+  D = maths:mod_inv(3, T),
+  ?assertEqual(1027, D),
+
+  S1 = sign_with_rsa({N, D}, M1 = 5416),
+  ?assertEqual(923, S1),
+
+  S2 = sign_with_rsa({N, D}, M2 = 2397),
+  ?assertEqual(2592, S2),
+
+  S3 = sign_with_rsa({N, D}, M1 * M2 rem N),
+  ?assertEqual(5086, S3), % not equal to
+  ?assertEqual(3834, S1 * S2 rem N).
