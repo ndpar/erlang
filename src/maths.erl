@@ -8,7 +8,7 @@
 -export([crt_garner/2, crt_solver/2]).
 -export([mod/2, mod_exp/3, mod_inv/2, mod_linear_equation_solver/3]).
 -export([dot_product/2, hadamard_prod/2, pairwise_primes/1, prod/1]).
--export([pow/2, random/2]).
+-export([pow/2]).
 
 %%
 %% @doc Hadamard product (a.k.a. Schur product) of two given vectors.
@@ -210,13 +210,6 @@ pow(N, E) when 0 < E -> N * pow(N, E - 1).
 -spec prod([number()]) -> number().
 
 prod(Numbers) -> lists:foldl(fun erlang:'*'/2, 1, Numbers).
-
-%%
-%% @doc Returns a random integer uniformly distributed in the interval [L, U].
-%%
--spec random(L :: integer(), U :: integer()) -> integer().
-
-random(L, U) -> L + rand:uniform(U - L + 1) - 1.
 
 
 %% =============================================================================

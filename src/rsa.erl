@@ -29,7 +29,7 @@ generate_rsa_prime(K) when 1024 =< K, K =< 4096 ->
   generate_rsa_prime(K, 100 * K).
 
 generate_rsa_prime(K, R) when 0 < R ->
-  N = maths:random(maths:pow(2, K - 1), maths:pow(2, K) - 1),
+  N = rnd:random(maths:pow(2, K - 1), maths:pow(2, K) - 1),
   generate_rsa_prime(K, R, N, N rem 3 =/= 1 andalso N rem 5 =/= 1 andalso primes:is_prime(N)).
 
 generate_rsa_prime(_, _, N, true) -> N;
@@ -76,7 +76,7 @@ generate_rsa_key(K) when 2048 =< K, K =< 8192 ->
 
 encrypt_random_key_with_rsa({N, E}) ->
   BitSize = maths:ilog2(N),
-  R = maths:random(0, maths:pow(2, BitSize) - 1),
+  R = rnd:random(0, maths:pow(2, BitSize) - 1),
   K = crypto:hash(sha256, binary:encode_unsigned(R)),
   {K, maths:mod_exp(R, E, N)}.
 
@@ -124,8 +124,8 @@ msg_to_rsa_number(N, M) ->
 %% call it in a separate process for safety.
 msg_to_rsa_number({N, M}) ->
   K = size(binary:encode_unsigned(N)),
-  bin:rand_seed(crypto:hash(sha256, M)),
-  X = bin:rand_bytes(K),
+  rnd:rand_seed(crypto:hash(sha256, M)),
+  X = rnd:rand_bytes(K),
   X rem N.
 
 %%

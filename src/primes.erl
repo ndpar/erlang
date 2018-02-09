@@ -31,7 +31,7 @@ factor_out(S, T) -> factor_out(S div 2, T + 1).
 %% Loop until the probability of a false result is small enough.
 %%
 miller_rabin(N, S, T, K) when K < 128 ->
-  A = maths:random(2, N - 1),
+  A = rnd:random(2, N - 1),
   case maths:mod_exp(A, S, N) of
     1 -> miller_rabin(N, S, T, K + 2);
     V -> case mr_squaring(0, V, N, T) of
@@ -81,7 +81,7 @@ random_prime(L, U) when 2 < L, L =< U ->
   random_prime(L, U, 100 * (maths:ilog2(U) + 1) - 1).
 
 random_prime(L, U, R) when 0 < R ->
-  N = maths:random(L, U),
+  N = rnd:random(L, U),
   case is_prime(N) of
     true -> N;
     false -> random_prime(L, U, R - 1)
