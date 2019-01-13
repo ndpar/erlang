@@ -16,14 +16,8 @@ is_prime(N) -> miller_rabin(N).
 miller_rabin(2) -> true;
 miller_rabin(N) when N rem 2 =:= 0 -> false;
 miller_rabin(N) when 3 =< N, N rem 2 =:= 1 ->
-  {S, T} = factor_out(N - 1, 0),
+  {S, T} = maths:factor2(N - 1),
   miller_rabin(N, S, T, 0).
-
-%%
-%% Compute {s, t} such that s is odd and s * 2^t = n - 1.
-%%
-factor_out(S, T) when S rem 2 =/= 0 -> {S, T};
-factor_out(S, T) -> factor_out(S div 2, T + 1).
 
 %%
 %% Keep track of the probability of a false result in K.

@@ -9,6 +9,7 @@
 -export([mod/2, mod_exp/3, mod_inv/2, mod_linear_equation_solver/3]).
 -export([dot_product/2, hadamard_prod/2, pairwise_primes/1, prod/1]).
 -export([pow/2]).
+-export([factor2/1]).
 
 %%
 %% @doc Hadamard product (a.k.a. Schur product) of two given vectors.
@@ -211,6 +212,15 @@ pow(N, E) when 0 < E -> N * pow(N, E - 1).
 
 prod(Numbers) -> lists:foldl(fun erlang:'*'/2, 1, Numbers).
 
+%%
+%% @doc Compute {s, t} such that s is odd and n = s * 2^t.
+%%
+-spec factor2(pos_integer()) -> {pos_integer(), non_neg_integer()}.
+
+factor2(N) -> factor2(N, 0).
+
+factor2(S, T) when S rem 2 =/= 0 -> {S, T};
+factor2(S, T) -> factor2(S div 2, T + 1).
 
 %% =============================================================================
 %% Unit tests
@@ -288,3 +298,7 @@ mod_inv_test_() -> [
 
 pow_test() ->
   ?assertEqual(1048576, pow(2, 20)).
+
+factor2_test() -> [
+  ?_assertEqual({3, 4}, factor2(48)),
+  ?_assertEqual({79, 1}, factor2(158))].
