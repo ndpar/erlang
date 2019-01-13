@@ -9,7 +9,7 @@
 -export([mod/2, mod_exp/3, mod_inv/2, mod_linear_equation_solver/3]).
 -export([dot_product/2, hadamard_prod/2, pairwise_primes/1, prod/1]).
 -export([pow/2]).
--export([factor2/1]).
+-export([factor2/1, jacobi/2]).
 
 %%
 %% @doc Hadamard product (a.k.a. Schur product) of two given vectors.
@@ -222,6 +222,36 @@ factor2(N) -> factor2(N, 0).
 factor2(S, T) when S rem 2 =/= 0 -> {S, T};
 factor2(S, T) -> factor2(S div 2, T + 1).
 
+%%
+%% @doc Compute Jacobi symbol (and Legendre symbol).
+%%
+%% See https://en.wikipedia.org/wiki/Jacobi_symbol
+%%
+%% @reference A.J.Menezes, P.C.van Oorschot, S.A.Vanstone.
+%% <em>Handbook of Applied Cryptography</em>. Chapter 2.4.5. Algorithm 2.149
+%%
+%% @reference CLRS, Problem 31-4.b
+%%
+jacobi(A, N) when 2 < N, N rem 2 =/= 0 -> jacobi(A, N, 1).
+
+jacobi(0, _, _) -> 0;
+jacobi(A, N, Acc) ->
+  {A1, E} = factor2(A),
+  S1 = if
+         E rem 2 =:= 0 -> 1;
+         N rem 8 =:= 1 orelse N rem 8 =:= 7 -> 1;
+         N rem 8 =:= 3 orelse N rem 8 =:= 5 -> -1
+       end,
+  S = if
+        N rem 4 =:= 3 andalso A1 rem 4 =:= 3 -> -S1;
+        true -> S1
+      end,
+  if
+    A1 =:= 1 -> S * Acc;
+    true -> jacobi(N rem A1, A1, S * Acc)
+  end.
+
+
 %% =============================================================================
 %% Unit tests
 %% =============================================================================
@@ -299,6 +329,15 @@ mod_inv_test_() -> [
 pow_test() ->
   ?assertEqual(1048576, pow(2, 20)).
 
-factor2_test() -> [
+factor2_test_() -> [
   ?_assertEqual({3, 4}, factor2(48)),
   ?_assertEqual({79, 1}, factor2(158))].
+
+jacobi_test_() ->
+  Z21 = [1, 2, 4, 5, 8, 10, 11, 13, 16, 17, 19, 20], [
+    ?_assertEqual(-1, jacobi(158, 235)),
+    ?_assertEqual([1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, -1], [jacobi(A, 3) || A <- Z21]),
+    ?_assertEqual([1, 1, 1, -1, 1, -1, 1, -1, 1, -1, -1, -1], [jacobi(A, 7) || A <- Z21]),
+    ?_assertEqual([1, -1, 1, 1, -1, -1, -1, -1, 1, 1, -1, 1], [jacobi(A, 21) || A <- Z21]),
+    ?_assertEqual([1, 1, 0, 1, 1, 0, 1, 1], [jacobi(A, 9) || A <- lists:seq(1, 8)]),
+    ?_assertEqual([1, 1, 0, 1, 0, 0, -1, 1, 0, 0, -1, 0, -1, -1], [jacobi(A, 15) || A <- lists:seq(1, 14)])].
