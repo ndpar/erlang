@@ -5,6 +5,7 @@
 -author("Andrey Paramonov").
 
 -export([is_prime/1, primes_upto/1, random_prime/2]).
+-export([pollard_p1/2]).
 
 %%
 %% @doc Returns true if the given N is a prime number.
@@ -82,6 +83,33 @@ random_prime(L, U, R) when 0 < R ->
   end.
 
 
+%%
+%% @doc Pollard’s p − 1 algorithm for factoring integers.
+%%
+%% @reference A.J.Menezes, P.C.van Oorschot, S.A.Vanstone.
+%% <em>Handbook of Applied Cryptography</em>. Chapter 3.2.3. Algorithm 3.14
+%%
+-spec pollard_p1(pos_integer(), pos_integer()) -> [pos_integer() | error].
+
+pollard_p1(N, B) ->
+  pollard_p1(N, B, rnd:random(2, N - 1)).
+
+pollard_p1(N, B, A) ->
+  case maths:gcd(A, N) of
+    1 -> pollard_p1_(N, A, primes_upto(B));
+    D -> D
+  end.
+
+pollard_p1_(_, _, []) -> error;
+pollard_p1_(N, A, [Q | T]) ->
+  L = erlang:trunc(maths:log(Q, N)),
+  A1 = maths:mod_exp(A, maths:pow(Q, L), N),
+  case maths:gcd(A1 - 1, N) of
+    1 -> pollard_p1_(N, A1, T);
+    N -> pollard_p1_(N, A1, T);
+    D -> D
+  end.
+
 %% =============================================================================
 %% Unit tests
 %% =============================================================================
@@ -101,3 +129,10 @@ primes_upto_test() ->
 
 random_prime_test() ->
   ?assertEqual(103, random_prime(102, 105)).
+
+pollard_p1_test_() -> [
+  ?_assertEqual(7001, pollard_p1(7451 * 7001, 7)),   % 7450 = 2 5 5 149, 7000 = 2 2 2 5 5 5 7
+  ?_assertEqual(5281, pollard_p1(3607 * 5281, 11)),  % 3606 = 2 3 601, 5280 = 2 2 2 2 2 3 5 11
+  ?_assertEqual(5741, pollard_p1(5939 * 5741, 41)),  % 5938 = 2 2969, 5740 = 2 2 5 7 41
+  ?_assertEqual(error, pollard_p1(5939 * 5741, 39)), % 39 < 41 and 2969
+  ?_assertError(function_clause, pollard_p1(7001, 11))]. % 7001 is prime
