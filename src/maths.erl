@@ -4,12 +4,21 @@
 -module(maths).
 -author("Andrey Paramonov").
 
+-export([log/2]).
 -export([egcd/2, gcd/2, lcm/2, ilog2/1, isqrt/1]).
 -export([crt_garner/2, crt_solver/2]).
 -export([mod/2, mod_exp/3, mod_inv/2, mod_linear_equation_solver/3]).
 -export([dot_product/2, hadamard_prod/2, pairwise_primes/1, prod/1]).
 -export([pow/2]).
--export([factor2/1, jacobi/2]).
+-export([factor2/1, jacobi/2, pollard_rho/1]).
+
+%%
+%% @doc Log base B of X.
+%%
+-spec log(B :: number(), X :: number()) -> float().
+
+log(B, X) -> math:log(X) / math:log(B).
+
 
 %%
 %% @doc Hadamard product (a.k.a. Schur product) of two given vectors.
@@ -44,6 +53,8 @@ egcd(C, D, Uc, Vc, Ud, Vd) ->
 %%
 -spec gcd(pos_integer(), pos_integer()) -> pos_integer().
 
+gcd(A, B) when A < 0 -> gcd(-A, B);
+gcd(A, B) when B < 0 -> gcd(A, -B);
 gcd(A, B) -> {GCD, _, _} = egcd(A, B), GCD.
 
 %%
@@ -251,6 +262,27 @@ jacobi(A, N, Acc) ->
     true -> jacobi(N rem A1, A1, S * Acc)
   end.
 
+%%
+%% @doc Pollard's rho heuristic.
+%%
+%% @reference CLRS, Chapter 31.9, p.976
+%%
+-spec pollard_rho(pos_integer()) -> pos_integer().
+
+pollard_rho(N) ->
+  X = rand:uniform(N - 1),
+  pollard_rho(N, X, X, 1, 2).
+
+pollard_rho(N, X, _, J, J) ->
+  pollard_rho(N, X, X, J, 2 * J);
+pollard_rho(N, X, Y, I, K) ->
+  Xi = mod(X * X - 1, N),
+  case gcd(Y - Xi, N) of
+    1 -> pollard_rho(N, Xi, Y, I + 1, K);
+    N -> pollard_rho(N, Xi, Y, I + 1, K);
+    D -> D
+  end.
+
 
 %% =============================================================================
 %% Unit tests
@@ -341,3 +373,7 @@ jacobi_test_() ->
     ?_assertEqual([1, -1, 1, 1, -1, -1, -1, -1, 1, 1, -1, 1], [jacobi(A, 21) || A <- Z21]),
     ?_assertEqual([1, 1, 0, 1, 1, 0, 1, 1], [jacobi(A, 9) || A <- lists:seq(1, 8)]),
     ?_assertEqual([1, 1, 0, 1, 0, 0, -1, 1, 0, 0, -1, 0, -1, -1], [jacobi(A, 15) || A <- lists:seq(1, 14)])].
+
+pollard_rho_test_() -> [
+  ?_assert(lists:member(pollard_rho(1387), [19, 73])),
+  ?_assert(lists:member(pollard_rho(455459), [613, 743]))].
