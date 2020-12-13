@@ -3,7 +3,7 @@
 -behaviour(gen_statem).
 
 %% API
--export([start/0, sit_down/1, done/1, wait/1, sorry/1]).
+-export([start/0, sit_down/1, done/1, sorry/1]).
 
 %% Callback functions
 -export([init/1, callback_mode/0, terminate/3, code_change/4]).
@@ -25,14 +25,11 @@ sit_down(Customer) ->
 done(Customer) ->
   gen_statem:cast(Customer, exit).
 
-wait(Customer) ->
-  gen_statem:cast(Customer, wait).
-
 sorry(Customer) ->
   gen_statem:cast(Customer, exit).
 
 %%====================================================================
-%% gen_fsm callbacks
+%% gen_statem callbacks
 %%====================================================================
 
 callback_mode() ->
@@ -55,10 +52,6 @@ code_change(_OldVsn, StateName, StateData, _Extra) ->
 waiting(cast, sit_down, WaitStart) ->
   log("I've been waiting for ~p sec.", [duration(WaitStart)]),
   {next_state, served, unow()};
-
-waiting(cast, wait, StateData) ->
-  log("OK."),
-  {next_state, waiting, StateData};
 
 waiting(cast, exit, _StateData) ->
   log("Maybe tomorrow."),

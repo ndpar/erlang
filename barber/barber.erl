@@ -9,13 +9,13 @@
 -export([init/1, callback_mode/0, terminate/3, code_change/4]).
 
 %% FSM states
--export([busy/3, sleep/3]).
+-export([sleep/3, ready/3, busy/3]).
 
 -define(SERVER, ?MODULE).
 -define(HAIRCUT_TIME, 5000).
 -define(ROOM_SIZE, 3).
 
--record(state, {chair, room = []}).
+-record(state, {room = 0}).
 
 %%====================================================================
 %% API
@@ -29,7 +29,7 @@ new_customer(Customer) ->
   gen_statem:cast(?SERVER, {new, Customer}).
 
 %%====================================================================
-%% gen_fsm callbacks
+%% gen_statem callbacks
 %%====================================================================
 
 callback_mode() ->
@@ -38,10 +38,6 @@ callback_mode() ->
 init([]) ->
   log("Shop is open. zzzzZ"),
   {ok, sleep, #state{}}.
-
-serving(Customer) ->
-  customer:sit_down(Customer),
-  timer:send_after(?HAIRCUT_TIME, finish).
 
 terminate(_Reason, _StateName, _StateData) ->
   ok.
@@ -53,34 +49,34 @@ code_change(_OldVsn, StateName, StateData, _Extra) ->
 %% FSM states and transitions
 %%====================================================================
 
-sleep(cast, {new, Customer}, StateData) ->
-  log("Good morning ~p. Please take a seat.", [Customer]),
-  serving(Customer),
-  {next_state, busy, StateData#state{chair = Customer}}.
+sleep(cast, {new, Customer}, #state{room = 0} = StateData) ->
+  log("Waking up for ~p.", [Customer]),
+  {next_state, ready, StateData, {next_event, cast, {new, Customer}}}.
 
-busy(info, finish, #state{chair = Customer, room = Room}) ->
+ready(cast, {new, Customer}, StateData) ->
+  log("Good morning ~p. Please take a seat.", [Customer]),
+  customer:sit_down(Customer),
+  {next_state, busy, StateData, {state_timeout, ?HAIRCUT_TIME, Customer}}.
+
+busy(state_timeout, Customer, #state{room = Room}) ->
   log("Do you like your haircut ~p?", [Customer]),
   customer:done(Customer),
   case Room of
-    [C | Rest] ->
-      log("Next please ~p.", [C]),
-      serving(C),
-      NewStateData = #state{chair = C, room = Rest},
-      {next_state, busy, NewStateData};
-    [] ->
-      log("Time for nap. zzzzZ."),
-      {next_state, sleep, #state{}}
+    0 ->
+      log("Time for nap. zzzzZ"),
+      {next_state, sleep, #state{}};
+    _ ->
+      log("Next please.", []),
+      {next_state, ready, #state{}} % postponed events will re-increment room on re-play
   end;
 
-busy(cast, {new, Customer}, #state{room = Room} = StateData) when length(Room) == ?ROOM_SIZE ->
-  log("Sorry ~p. Not today.", [Customer]),
+busy(cast, {new, Customer}, #state{room = ?ROOM_SIZE} = StateData) ->
+  log("Sorry ~p. No room left.", [Customer]),
   customer:sorry(Customer),
   {next_state, busy, StateData};
 
-busy(cast, {new, Customer}, #state{room = Room} = StateData) ->
-  log("I'm busy. You have to wait."),
-  customer:wait(Customer),
-  {next_state, busy, StateData#state{room = Room ++ [Customer]}}.
+busy(cast, {new, _Customer}, #state{room = Room}) ->
+  {next_state, busy, #state{room = Room + 1}, postpone}.
 
 %%====================================================================
 %% Helper functions
