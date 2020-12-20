@@ -23,7 +23,7 @@ sit_down(Customer) ->
   gen_statem:cast(Customer, sit_down).
 
 done(Customer) ->
-  gen_statem:cast(Customer, exit).
+  gen_statem:call(Customer, exit).
 
 sorry(Customer) ->
   gen_statem:cast(Customer, exit).
@@ -57,9 +57,9 @@ waiting(cast, exit, _StateData) ->
   log("Maybe tomorrow."),
   {stop, normal, undefined}.
 
-served(cast, exit, ServiceStart) ->
+served({call, Barber}, exit, ServiceStart) ->
   log("Thank you. The haircut took ~p sec.", [duration(ServiceStart)]),
-  {stop, normal, undefined}.
+  {stop_and_reply, normal, {reply, Barber, ok}}.
 
 %%====================================================================
 %% Helper functions

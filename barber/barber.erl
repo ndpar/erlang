@@ -60,7 +60,7 @@ ready(cast, {new, Customer}, StateData) ->
 
 busy(state_timeout, Customer, #state{room = Room}) ->
   log("Do you like your haircut ~p?", [Customer]),
-  customer:done(Customer),
+  ok = customer:done(Customer),
   case Room of
     0 ->
       log("Time for nap. zzzzZ"),
