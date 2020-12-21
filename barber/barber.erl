@@ -3,7 +3,7 @@
 -behaviour(gen_statem).
 
 %% API
--export([open_shop/0, new_customer/1]).
+-export([open_shop/0, new_customer/1, close_shop/0]).
 
 %% Callback functions
 -export([init/1, callback_mode/0, terminate/3, code_change/4]).
@@ -24,6 +24,9 @@
 open_shop() ->
   gen_statem:start_link({local, ?SERVER}, ?MODULE, [], []).
 
+close_shop() ->
+  gen_statem:stop(?SERVER).
+
 -spec new_customer(pid()) -> ok.
 new_customer(Customer) ->
   gen_statem:cast(?SERVER, {new, Customer}).
@@ -40,6 +43,7 @@ init([]) ->
   {ok, sleep, #state{}}.
 
 terminate(_Reason, _StateName, _StateData) ->
+  log("Shop is closed. Bye."),
   ok.
 
 code_change(_OldVsn, StateName, StateData, _Extra) ->
