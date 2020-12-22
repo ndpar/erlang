@@ -367,6 +367,7 @@ factor2_test_() -> [
 
 jacobi_test_() ->
   Z21 = [1, 2, 4, 5, 8, 10, 11, 13, 16, 17, 19, 20], [
+    ?_assertEqual(-1, jacobi(pow(2, 251) - 9 - 1174, pow(2, 251) - 9)),
     ?_assertEqual(-1, jacobi(158, 235)),
     ?_assertEqual([1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, -1], [jacobi(A, 3) || A <- Z21]),
     ?_assertEqual([1, 1, 1, -1, 1, -1, 1, -1, 1, -1, -1, -1], [jacobi(A, 7) || A <- Z21]),
@@ -375,5 +376,5 @@ jacobi_test_() ->
     ?_assertEqual([1, 1, 0, 1, 0, 0, -1, 1, 0, 0, -1, 0, -1, -1], [jacobi(A, 15) || A <- lists:seq(1, 14)])].
 
 pollard_rho_test_() -> [
-  ?_assert(lists:member(pollard_rho(1387), [19, 73])),
-  ?_assert(lists:member(pollard_rho(455459), [613, 743]))].
+%%  ?_assert(lists:member(pollard_rho(455459), [613, 743])),
+  ?_assert(lists:member(pollard_rho(1387), [19, 73]))].
