@@ -1,3 +1,6 @@
+@author Andrey V. Paramonov
+@since November 2009
+
 @reference [A2] Armstrong J. <em>Programming Erlang</em> (2nd edition)
 @reference [CLRS3] Cormen T.H., Leiserson C.E., Rivest R.L., Stein C. <em>Introduction to Algorithms</em> (3rd edition)
 @reference [CT1] Cesarini F., Thompson S. <em>Erlang Programming</em>

@@ -238,10 +238,10 @@ factor2(S, T) -> factor2(S div 2, T + 1).
 %%
 %% See https://en.wikipedia.org/wiki/Jacobi_symbol
 %%
-%% @reference A.J.Menezes, P.C.van Oorschot, S.A.Vanstone.
+%% See A.J.Menezes, P.C.van Oorschot, S.A.Vanstone.
 %% <em>Handbook of Applied Cryptography</em>. Chapter 2.4.5. Algorithm 2.149
 %%
-%% @reference [CLRS3] Problem 31-4.b
+%% [CLRS3] Problem 31-4.b
 %%
 jacobi(A, N) when 2 < N, N rem 2 =/= 0 -> jacobi(A, N, 1).
 
@@ -265,7 +265,7 @@ jacobi(A, N, Acc) ->
 %%
 %% @doc Pollard's rho heuristic.
 %%
-%% @reference [CLRS3] Chapter 31.9, p.976
+%% [CLRS3] Chapter 31.9, p.976
 %%
 -spec pollard_rho(pos_integer()) -> pos_integer().
 

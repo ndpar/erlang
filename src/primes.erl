@@ -86,7 +86,7 @@ random_prime(L, U, R) when 0 < R ->
 %%
 %% @doc Pollard’s p − 1 algorithm for factoring integers.
 %%
-%% @reference A.J.Menezes, P.C.van Oorschot, S.A.Vanstone.
+%% See A.J.Menezes, P.C.van Oorschot, S.A.Vanstone.
 %% <em>Handbook of Applied Cryptography</em>. Chapter 3.2.3. Algorithm 3.14
 %%
 -spec pollard_p1(pos_integer(), pos_integer()) -> [pos_integer() | error].

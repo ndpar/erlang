@@ -1,6 +1,8 @@
 %%
 %% @doc Various functions to work on binaries.
 %%
+%% @reference [A2] Chapter 7
+%%
 -module(bin).
 -export([integer_to_bitstring/1]).
 -export([lxor/1, lxor/2]).
@@ -13,7 +15,7 @@
 %% @doc Returns a bitstring representation of the
 %% given integer with leading zeroes removed.
 %%
-%% E.g. `<<2#1100:4>> = bin:integer_to_bitstring(12).'
+%% ```<<2#1100:4>> = bin:integer_to_bitstring(12).'''
 %%
 %% @see binary:encode_unsigned/1.
 %%
@@ -28,7 +30,7 @@ trim_bitstring(<<0:1, B/bitstring>>) -> trim_bitstring(B).
 %%
 %% @doc Left XOR.
 %%
-%% E.g. `<<16#B9F9:16>> = bin:lxor(<<16#ABCDEF:24>>, <<16#1234:16>>).'
+%% ```<<16#B9F9:16>> = bin:lxor(<<16#ABCDEF:24>>, <<16#1234:16>>).'''
 %%
 -spec lxor(binary(), binary()) -> binary().
 
@@ -65,12 +67,18 @@ hexstr_to_bin(String) ->
 bin_to_hexstr(Bin) ->
   binary_to_list(<<<<Y>> || <<X:4>> <= Bin, Y <- integer_to_list(X, 16)>>).
 
-%
-% [A2] Chapter 7
-%
+%%
+%% @doc Reverses the order of bytes in a binary.
+%%
+-spec reverse_bytes(binary()) -> binary().
 
 reverse_bytes(B) ->
   list_to_binary(lists:reverse(binary_to_list(B))).
+
+%%
+%% @doc Reverses the bits in a binary.
+%%
+-spec reverse_bits(binary()) -> binary().
 
 reverse_bits(B) -> reverse_bits(B, <<>>).
 
@@ -79,10 +87,23 @@ reverse_bits(<<X:1, Rest/bitstring>>, Acc) ->
   reverse_bits(Rest, <<X:1, Acc/bitstring>>).
 
 
+%%
+%% @doc Returns a binary consisting of a 4-byte length header N
+%% followed by N bytes of data produced by calling
+%% `term_to_binary(Term)'.
+%% @see packet_to_term/1
+%%
+-spec term_to_packet(term()) -> binary().
+
 term_to_packet(Term) ->
   <<Header:32, Data/binary>> = term_to_binary(Term),
   Length = size(Data),
   <<Header:32, Length:32, Data/binary>>.
+
+%%
+%% @doc The inverse of the {@link term_to_packet} function.
+%%
+-spec packet_to_term(B::binary()) -> term().
 
 packet_to_term(<<Header:32, Length:32, Data/binary>>) ->
   binary_to_term(<<Header:32, Data:Length/binary>>).
