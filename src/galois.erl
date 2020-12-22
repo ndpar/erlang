@@ -83,7 +83,7 @@ init_counter(IV, H) -> ghash(H, <<>>, IV).
 incr(<<Nonce:12/binary, Counter:32>>) -> <<Nonce/binary, (Counter + 1):32>>.
 
 % Single block AES encryption for key K
-enc(K, P) -> crypto:block_encrypt(aes_ecb, K, P).
+enc(K, P) -> crypto:crypto_one_time(aes_256_ecb, K, P, true).
 
 
 -include_lib("eunit/include/eunit.hrl").
@@ -93,7 +93,7 @@ my_aes_gcm_is_equivalent_to_erlang_aes_gcm_test() ->
   A = <<16#1e0889016f67601c8ebea4943bc23ad6:128>>,
   P = <<16#2d71bcfa914e4ac045b2aa60955fad24:128>>,
   IV = <<16#ac93a1a6145299bde902f21a:96>>,
-  ?assertEqual(crypto:block_encrypt(aes_gcm, K, IV, {A, P, 16}), gcm(K, IV, A, P, 16)).
+  ?assertEqual(crypto:crypto_one_time_aead(aes_256_gcm, K, IV, P, A, true), gcm(K, IV, A, P, 16)).
 
 gmac_test() ->
   K = <<16#8000000000000000000000000000000000000000000000000000000000000001:256>>,
@@ -197,14 +197,14 @@ manual_gcm_one_block_test() ->
   H1 = exor(C1, mult(A, H)),
   H2 = exor(mult(H1, H), <<128:64, 128:64>>),
   T = exor(enc(K, Y0), mult(H2, H)),
-  ?assertEqual({C1, T}, crypto:block_encrypt(aes_gcm, K, IV, {A, P, 16})).
+  ?assertEqual({C1, T}, crypto:crypto_one_time_aead(aes_256_gcm, K, IV, P, A, true)).
 
 aes_gcm_test() ->
   K = <<16#92e11dcdaa866f5ce790fd24501f92509aacf4cb8b1339d50c9c1240935dd08b:256>>,
   A = <<16#1e0889016f67601c8ebea4943bc23ad6:128>>,
   P = <<16#2d71bcfa914e4ac045b2aa60955fad24:128>>,
   IV = <<16#ac93a1a6145299bde902f21a:96>>,
-  {CipherText, CipherTag} = crypto:block_encrypt(aes_gcm, K, IV, {A, P, 16}),
+  {CipherText, CipherTag} = crypto:crypto_one_time_aead(aes_256_gcm, K, IV, P, A, true),
   ?assertEqual(<<16#8995AE2E6DF3DBF96FAC7B7137BAE67F:128>>, CipherText),
   ?assertEqual(<<16#ECA5AA77D51D4A0A14D9C51E1DA474AB:128>>, CipherTag).
 
