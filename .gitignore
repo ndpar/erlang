@@ -6,7 +6,9 @@ _build
 /temp
 /temp2
 
-doc
+doc/*
+!doc/overview.edoc
+
 /mycache/ebin/Mnesia*
 /mycache/ebin/*.beam
 /mycache/java/.classpath

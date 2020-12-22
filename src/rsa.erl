@@ -1,8 +1,7 @@
 %%
 %% @doc Implementation of RSA encryption functions.
 %%
-%% @reference N.Ferguson, B.Schneier, T. Kohno. <em>Cryptography Engineering</em>.
-%% Chapter 12. RSA
+%% @reference [FSK1] Chapter 12. RSA
 %%
 -module(rsa).
 -author("Andrey Paramonov").

@@ -15,8 +15,7 @@
 %% $ openssl genrsa -out private.pem 2048
 %% $ openssl asn1parse -i -in private.pem
 %% '''
-%% @reference N.Ferguson, B.Schneier, T. Kohno. <em>Cryptography Engineering</em>.
-%% Chapter 12.4.3. The Private Key.
+%% @reference [FSK1] Chapter 12.4.3. The Private Key.
 %%
 -module(rsa_private_key).
 -author("Andrey Paramonov").

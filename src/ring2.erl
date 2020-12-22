@@ -1,6 +1,5 @@
 %
-% J. Armstrong, Programming Erlang, 2nd Edition
-% Exercise 12.3, p. 198.
+% [A2] Exercise 12.3, p. 198.
 %
 % Compile with trace disabled:
 % 1> c(ring2, {d, no_trace}).

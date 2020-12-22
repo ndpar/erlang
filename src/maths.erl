@@ -116,7 +116,7 @@ crt_garner({A, P}, {B, Q}) ->
 %%
 %% The solution exists when N is a vector of relatively prime numbers.
 %%
-%% See CLRS, Theorem 31.27.
+%% See [CLRS3] Theorem 31.27.
 %%
 -spec crt_solver([non_neg_integer()], [pos_integer()]) -> pos_integer().
 
@@ -144,7 +144,7 @@ mod(A, M) -> (A rem M + M) rem M.
 %%
 %% @doc Fast modular exponentiation by repeated squaring.
 %%
-%% CLRS, chapter 31.6.
+%% [CLRS3] Chapter 31.6.
 %%
 %% If Base, Exp, and Mod are b-bit numbers, then the total
 %% number of arithmetic operations required is O(b) and
@@ -180,7 +180,7 @@ mod_inv(B, N) when 0 < B, 0 < N ->
 %% @doc Solves equation ax = b (mod n) or returns `error'
 %% if the solution does not exist.
 %%
-%% CLRS, chapter 31.4.
+%% [CLRS3] Chapter 31.4.
 %%
 -spec mod_linear_equation_solver(integer(), integer(), pos_integer()) -> [non_neg_integer()] | error.
 
@@ -241,7 +241,7 @@ factor2(S, T) -> factor2(S div 2, T + 1).
 %% @reference A.J.Menezes, P.C.van Oorschot, S.A.Vanstone.
 %% <em>Handbook of Applied Cryptography</em>. Chapter 2.4.5. Algorithm 2.149
 %%
-%% @reference CLRS, Problem 31-4.b
+%% @reference [CLRS3] Problem 31-4.b
 %%
 jacobi(A, N) when 2 < N, N rem 2 =/= 0 -> jacobi(A, N, 1).
 
@@ -265,7 +265,7 @@ jacobi(A, N, Acc) ->
 %%
 %% @doc Pollard's rho heuristic.
 %%
-%% @reference CLRS, Chapter 31.9, p.976
+%% @reference [CLRS3] Chapter 31.9, p.976
 %%
 -spec pollard_rho(pos_integer()) -> pos_integer().
 

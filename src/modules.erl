@@ -1,6 +1,6 @@
 %
 % Various functions to work with modules. Based on
-% J. Armstrong, Programming Erlang, Chapter 8 exercises
+% [A2] Chapter 8 exercises
 %
 -module(modules).
 -export([all_loaded/0, is_loaded/1, exported/1]).

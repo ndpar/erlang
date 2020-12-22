@@ -1,7 +1,5 @@
 %%
-%% @doc Exercises from the book
-%%
-%% @reference J.Armstrong. <em>Programming Erlang</em>.
+%% @doc Exercises from the book [A2].
 %%
 -module(prog_erl).
 -author("Andrey Paramonov").

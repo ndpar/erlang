@@ -66,7 +66,7 @@ bin_to_hexstr(Bin) ->
   binary_to_list(<<<<Y>> || <<X:4>> <= Bin, Y <- integer_to_list(X, 16)>>).
 
 %
-% J. Armstrong, Programming Erlang, Chapter 7
+% [A2] Chapter 7
 %
 
 reverse_bytes(B) ->
