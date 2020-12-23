@@ -1,23 +1,27 @@
-%
-% Various functions to work with modules. Based on
-% [A2] Chapter 8 exercises
-%
+%%
+%% @doc Various functions to work with modules.
+%%
+%% @reference [A2] Chapter 8 exercises
+%%
 -module(modules).
 -export([all_loaded/0, is_loaded/1, exported/1]).
 
-%
-% Returns a list of all modules that have been loaded in ERTS.
-%
+%%
+%% @doc Returns a list of all modules that have been loaded in ERTS.
+%%
+-spec all_loaded() -> [module()].
 all_loaded() -> [M || {M, _} <- code:all_loaded()].
 
-%
-% Returns true if the Module has been loaded.
-%
+%%
+%% @doc Returns `true' if the Module has been loaded.
+%%
+-spec is_loaded(module()) -> boolean().
 is_loaded(Module) -> lists:member(Module, all_loaded()).
 
-%
-% Returns a list of functions exported by the Module.
-%
+%%
+%% @doc Returns a list of functions exported by the Module.
+%%
+-spec exported(module()) -> [{atom(), non_neg_integer()}].
 exported(Module) -> Module:module_info(exports).
 
 
@@ -29,7 +33,7 @@ is_loaded_test() ->
 exported_test() ->
   ?assert(lists:member({test, 0}, exported(?MODULE))).
 
-% The following tests are done in Erlang 20.2.2
+% The following assertions have been tested in Erlang 23.1.5
 
 % Exercise 1, p.138
 dict_test() ->
@@ -37,7 +41,7 @@ dict_test() ->
 
 % Exercise 2, p.139
 module_with_most_functions_test() ->
-  ?assertMatch({erlang, _}, % 329
+  ?assertMatch({erlang, _}, % 339
     lists:last(lists:keysort(2, [{M, length(exported(M))} || M <- all_loaded()]))).
 
 % Exercise 2, p.139

@@ -9,6 +9,8 @@ This repository is a collection of algorithms and exercises from the following b
 - [Introduction to Algorithms](https://mitpress.mit.edu/books/introduction-algorithms-third-edition) (3rd edition) by Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein [CLRS3]
 - [Programming Erlang](https://pragprog.com/titles/jaerlang2/programming-erlang-2nd-edition/) (2nd edition) by Joe Armstrong [A2]
 
+Tested with Erlang/OTP 23.
+
 Build
 -----
 
