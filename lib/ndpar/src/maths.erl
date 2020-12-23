@@ -13,7 +13,7 @@
 -export([factor2/1, jacobi/2, pollard_rho/1]).
 
 %%
-%% @doc Log base B of X.
+%% @doc Log base `B' of `X'.
 %%
 -spec log(B :: number(), X :: number()) -> float().
 
@@ -36,7 +36,7 @@ dot_product(A, B) -> lists:sum(hadamard_prod(A, B)).
 
 %%
 %% @doc Extended Euclidean Algorithm to compute GCD.
-%% This identity holds true: GCD(A, B) = A * U + B * V.
+%% This identity holds true: `GCD(A, B) = A * U + B * V'.
 %%
 -spec egcd(A :: pos_integer(), B :: pos_integer()) ->
   {GCD :: pos_integer(), U :: integer(), V :: integer()}.
@@ -65,18 +65,17 @@ gcd(A, B) -> {GCD, _, _} = egcd(A, B), GCD.
 lcm(A, B) -> A * B div gcd(A, B).
 
 %%
-%% @doc Floor of the logarithm base 2 of the given integer N.
+%% @doc Floor of the logarithm base 2 of the given integer `N'.
 %%
--spec ilog2(pos_integer()) -> pos_integer().
+-spec ilog2(pos_integer()) -> non_neg_integer().
 
 ilog2(N) when 0 < N ->
   B = bin:integer_to_bitstring(N),
   bit_size(B) - 1.
 
 %%
-%% @doc Integer square root.
-%% Implemented using bitwise algorithm
-%% (https://en.wikipedia.org/wiki/Integer_square_root#Using_bitwise_operations)
+%% @doc Integer square root. Implemented using
+%% [https://en.wikipedia.org/wiki/Integer_square_root#Using_bitwise_operations bitwise algorithm].
 %%
 -spec isqrt(non_neg_integer()) -> non_neg_integer().
 
@@ -99,8 +98,9 @@ isqrt_root(N, Shift, Root) ->
 
 
 %%
-%% @doc Garner's formula to solve particular case of CRT:
-%% `x = a (mod p), x = b (mod q)' where `p' and `q' are primes.
+%% @doc Garner's formula to solve particular case of CRT
+%%
+%% ```x = a (mod p), x = b (mod q)''' where `p' and `q' are primes.
 %%
 %% It gives the same result as `crt_solver([A, B], [P, Q]).'
 %%
@@ -111,14 +111,14 @@ crt_garner({A, P}, {B, Q}) ->
 
 %%
 %% @doc Chinese Remainder Theorem solver.
-%% For given vectors A and N, solves the equation `x = A (mod N)'
+%% For given vectors `A' and `N', solves the equation `x = A (mod N)'
 %% or returns `error' if the solution does not exist.
 %%
-%% The solution exists when N is a vector of relatively prime numbers.
+%% The solution exists when `N' is a vector of relatively prime numbers.
 %%
 %% See [CLRS3] Theorem 31.27.
 %%
--spec crt_solver([non_neg_integer()], [pos_integer()]) -> pos_integer().
+-spec crt_solver([non_neg_integer()], [pos_integer()]) -> pos_integer() | error.
 
 crt_solver(A, N) when length(A) =:= length(N) ->
   try core:zipfold(crtFun(prod(N)), 0, A, N) of
@@ -144,11 +144,11 @@ mod(A, M) -> (A rem M + M) rem M.
 %%
 %% @doc Fast modular exponentiation by repeated squaring.
 %%
-%% [CLRS3] Chapter 31.6.
+%% See [CLRS3] Chapter 31.6.
 %%
-%% If Base, Exp, and Mod are b-bit numbers, then the total
-%% number of arithmetic operations required is O(b) and
-%% the total number of bit operations required is O(b^3).
+%% If `Base', `Exp', and `Mod' are `b'-bit numbers, then the total
+%% number of arithmetic operations required is `O(b)' and
+%% the total number of bit operations required is `O(b^3)'.
 %%
 %% @see crypto:mod_pow/3
 %% @see crypto:bytes_to_integer/1
@@ -166,9 +166,9 @@ mod_exp(A, <<1:1, B/bitstring>>, C, D, N) ->
 
 
 %%
-%% @doc Inverse of B modulo N.
+%% @doc Inverse of `B' modulo `N'.
 %%
--spec mod_inv(B :: pos_integer(), N :: pos_integer()) -> pos_integer().
+-spec mod_inv(B :: pos_integer(), N :: pos_integer()) -> pos_integer() | error.
 
 mod_inv(B, N) when 0 < B, 0 < N ->
   case mod_linear_equation_solver(B, 1, N) of
@@ -177,10 +177,10 @@ mod_inv(B, N) when 0 < B, 0 < N ->
   end.
 
 %%
-%% @doc Solves equation ax = b (mod n) or returns `error'
+%% @doc Solves equation `ax = b (mod n)' or returns `error'
 %% if the solution does not exist.
 %%
-%% [CLRS3] Chapter 31.4.
+%% See [CLRS3] Chapter 31.4.
 %%
 -spec mod_linear_equation_solver(integer(), integer(), pos_integer()) -> [non_neg_integer()] | error.
 
@@ -224,7 +224,7 @@ pow(N, E) when 0 < E -> N * pow(N, E - 1).
 prod(Numbers) -> lists:foldl(fun erlang:'*'/2, 1, Numbers).
 
 %%
-%% @doc Compute {s, t} such that s is odd and n = s * 2^t.
+%% @doc Compute `{s, t}' such that `s' is odd and `n = s * 2^t'.
 %%
 -spec factor2(pos_integer()) -> {pos_integer(), non_neg_integer()}.
 
@@ -234,14 +234,11 @@ factor2(S, T) when S rem 2 =/= 0 -> {S, T};
 factor2(S, T) -> factor2(S div 2, T + 1).
 
 %%
-%% @doc Compute Jacobi symbol (and Legendre symbol).
+%% @doc Compute [https://en.wikipedia.org/wiki/Jacobi_symbol Jacobi symbol] (and Legendre symbol).
 %%
-%% See https://en.wikipedia.org/wiki/Jacobi_symbol
+%% See [MvOV1] Chapter 2.4.5. Algorithm 2.149
 %%
-%% See A.J.Menezes, P.C.van Oorschot, S.A.Vanstone.
-%% <em>Handbook of Applied Cryptography</em>. Chapter 2.4.5. Algorithm 2.149
-%%
-%% [CLRS3] Problem 31-4.b
+%% See [CLRS3] Problem 31-4.b
 %%
 jacobi(A, N) when 2 < N, N rem 2 =/= 0 -> jacobi(A, N, 1).
 
@@ -265,7 +262,7 @@ jacobi(A, N, Acc) ->
 %%
 %% @doc Pollard's rho heuristic.
 %%
-%% [CLRS3] Chapter 31.9, p.976
+%% See [CLRS3] Chapter 31.9, p.976
 %%
 -spec pollard_rho(pos_integer()) -> pos_integer().
 

@@ -4,10 +4,9 @@
 _build
 /ebin
 /temp
-/temp2
 
-doc/*
-!doc/overview.edoc
+**/doc/*
+!**/doc/overview.edoc
 
 /mycache/ebin/Mnesia*
 /mycache/ebin/*.beam

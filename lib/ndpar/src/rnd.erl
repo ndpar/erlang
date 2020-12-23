@@ -8,7 +8,7 @@
 -export([random/2]).
 
 %%
-%% @doc Generates N bytes randomly uniform 0..255,
+%% @doc Generates `N' bytes randomly uniform 0..255,
 %% and returns the result as an integer.
 %%
 %% Uses {@link rand:uniform/1} so that the result can
@@ -42,7 +42,7 @@ rand_seed(Seed) when 30 =< size(Seed) ->
   rand:seed(exsplus, {A1, A2, A3}).
 
 %%
-%% @doc Returns a random integer uniformly distributed in the interval [L, U].
+%% @doc Returns a random integer uniformly distributed in the interval `[L, U]'.
 %%
 -spec random(L :: integer(), U :: integer()) -> integer().
 

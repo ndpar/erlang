@@ -31,7 +31,7 @@ positions([], _, Acc) ->
     dict:map(fun(_, V) -> sets:from_list(V) end, Acc).
 
 
-%% @doc Internal function: Starts a listner loop.
+%% @doc Internal function: Starts a listener loop.
 %% Responds on messages in the form of [pos_integer()].
 -spec loop([{pos_integer(), [pos_integer()]}]) -> {Black::non_neg_integer(), White::non_neg_integer()} | congrats.
 loop(Code) ->

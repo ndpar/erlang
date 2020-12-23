@@ -10,11 +10,12 @@ It also shows how to use the following features of `gen_statem`
 
 To run the demo, execute these commands in Erlang shell:
 
-    barber:open_shop().
-    barber:new_customer(customer:start()).
-    barber:new_customer(customer:start()).
-    barber:new_customer(customer:start()).
-    barber:new_customer(customer:start()).
+    1> barber:open_shop().
+    2> barber:new_customer(customer:start()).
+    3> barber:new_customer(customer:start()).
+    4> barber:new_customer(customer:start()).
+    5> barber:new_customer(customer:start()).
+    6> barber:close_shop().
 
 For the background information and the previous implementation, see this
 [blog post](https://blog.ndpar.com/2013/06/11/sleeping-barber-in-erlang/).

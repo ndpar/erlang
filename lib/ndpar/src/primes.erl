@@ -1,5 +1,5 @@
 %%
-%% Various functions to work with prime numbers.
+%% @doc Various functions to work with prime numbers.
 %%
 -module(primes).
 -author("Andrey Paramonov").
@@ -8,7 +8,7 @@
 -export([pollard_p1/2]).
 
 %%
-%% @doc Returns true if the given N is a prime number.
+%% @doc Returns `true' if the given `N' is a prime number.
 %%
 -spec is_prime(N :: pos_integer()) -> boolean().
 
@@ -21,7 +21,7 @@ miller_rabin(N) when 3 =< N, N rem 2 =:= 1 ->
   miller_rabin(N, S, T, 0).
 
 %%
-%% Keep track of the probability of a false result in K.
+%% Keep track of the probability of a false result in `K'.
 %% The probability is at most 2^-K.
 %% Loop until the probability of a false result is small enough.
 %%
@@ -46,8 +46,8 @@ mr_squaring(I, V, N, T) -> mr_squaring(I + 1, maths:mod_exp(V, 2, N), N, T).
 
 
 %%
-%% Find all prime numbers up to specified value.
-%% Works relatively fast for N < 5,000,000.
+%% @doc Find all prime numbers up to specified value.
+%% Works relatively fast for `N < 5,000,000'.
 %%
 -spec primes_upto(N :: 2..5000000) -> [integer()].
 
@@ -68,7 +68,7 @@ sieve([], _N) -> [].
 
 
 %%
-%% @doc Returns a random prime in the interval [L, U].
+%% @doc Returns a random prime in the interval `[L, U]'.
 %%
 -spec random_prime(L :: pos_integer(), U :: pos_integer()) -> pos_integer().
 
@@ -84,12 +84,11 @@ random_prime(L, U, R) when 0 < R ->
 
 
 %%
-%% @doc Pollard’s p − 1 algorithm for factoring integers.
+%% @doc Pollard’s `p − 1' algorithm for factoring integers.
 %%
-%% See A.J.Menezes, P.C.van Oorschot, S.A.Vanstone.
-%% <em>Handbook of Applied Cryptography</em>. Chapter 3.2.3. Algorithm 3.14
+%% See [MvOV1] Chapter 3.2.3. Algorithm 3.14
 %%
--spec pollard_p1(pos_integer(), pos_integer()) -> [pos_integer() | error].
+-spec pollard_p1(pos_integer(), pos_integer()) -> pos_integer() | error.
 
 pollard_p1(N, B) ->
   pollard_p1(N, B, rnd:random(2, N - 1)).

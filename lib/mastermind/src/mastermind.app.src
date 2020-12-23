@@ -6,5 +6,5 @@
     {applications, [kernel, stdlib]},
     {maintainers, ["Andrey Paramonov"]},
     {licenses, ["Apache 2.0"]},
-    {links, [{"GitHub", "https://github.com/ndpar/erlang/mastermind"}]}
+    {links, [{"GitHub", "https://github.com/ndpar/erlang/lib/mastermind"}]}
   ]}.

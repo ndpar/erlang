@@ -1,22 +1,28 @@
-%
-% Galois Fields and
-% Galois Counter Mode of Operation (GCM)
-%
-% [1] http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.694.695&rep=rep1&type=pdf
-% [2] https://dl.acm.org/citation.cfm?id=2206251
-%
+%%
+%% @doc Galois Fields and
+%% Galois Counter Mode of Operation (GCM).
+%%
+%% ❗Attention: This module is for demonstration purposes only.
+%% In production one should use `crypto' module from the standard library.
+%%
+%% @reference [1] McGrew D.A., Viega J. <em>The Galois/Counter Mode of Operation (GCM)</em>
+%% @reference [[https://dl.acm.org/citation.cfm?id=2206251 2]] Dworkin M.J. <em>Galois/Counter Mode (GCM) and GMAC</em>
+%%
 -module(galois).
 -export([gcm/5, ghash/3, gmac/3, mult/2]).
 -import(bin, [lxor/2]).
 -import(crypto, [exor/2]).
 -import(maths, [mod/2]).
 
+% http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.694.695&rep=rep1&type=pdf
+
 -define(R, <<2#11100001:8, 0:120>>).
 
-%
-% Multiplication in GF(2^128).
-% See [1](Algorithm 1)
-%
+%%
+%% @doc Multiplication in `GF(2^128)'.
+%%
+%% See [1] Algorithm 1.
+%%
 -spec mult(binary(), binary()) -> binary().
 
 mult(X, Y) -> mult(<<0:128>>, X, Y).
@@ -28,9 +34,9 @@ mult(Z, V, <<1:1, _/bitstring>> = Y) -> mult_shift(exor(Z, V), V, Y).
 mult_shift(Z, <<V:127, 0:1>>, <<_:1, Y/bitstring>>) -> mult(Z, <<0:1, V:127>>, Y);
 mult_shift(Z, <<V:127, 1:1>>, <<_:1, Y/bitstring>>) -> mult(Z, exor(<<0:1, V:127>>, ?R), Y).
 
-%
-% GHASH function as defined by [1](2).
-%
+%%
+%% @doc GHASH function as defined by [1](2).
+%%
 ghash(H, A, C) -> ghash(H, join(A, C)).
 
 join(X, Y) ->
@@ -38,16 +44,16 @@ join(X, Y) ->
   YL = bit_size(Y),
   <<X/binary, 0:(mod(-XL, 128)), Y/binary, 0:(mod(-YL, 128)), XL:64, YL:64>>.
 
-%
-% GHASH function as defined by [2](Algorithm 2).
-%
+%%
+%% @doc GHASH function as defined by [2](Algorithm 2).
+%%
 ghash(H, Data) ->
   Blocks = [<<X:128>> || <<X:128>> <= Data],
   lists:foldl(fun(X, Y) -> mult(exor(Y, X), H) end, <<0:128>>, Blocks).
 
-%
-% AES-256-GCM implementation as specified by [1](1).
-%
+%%
+%% @doc AES-256-GCM implementation as specified by [1](1).
+%%
 gcm(K, IV, A, P, TLength) ->
   EK = fun(X) -> enc(K, X) end,
   H = EK(<<0:128>>),
@@ -66,9 +72,9 @@ blocks(P, BlockSize) ->
   PL = size(P),
   [<<X:BlockSize/binary>> || <<X:BlockSize/binary>> <= P] ++ [binary_part(P, {PL, -(PL rem BlockSize)})].
 
-%
-% GMAC
-%
+%%
+%% @doc GMAC implementation.
+%%
 gmac(K, Nonce, A) ->
   {<<>>, Tag} = gcm(K, Nonce, A, <<>>, 16),
   Tag.

@@ -19,7 +19,7 @@
 %%
 %% @see binary:encode_unsigned/1.
 %%
--spec integer_to_bitstring(non_neg_integer()) -> binary().
+-spec integer_to_bitstring(non_neg_integer()) -> bitstring().
 
 integer_to_bitstring(Int) -> trim_bitstring(binary:encode_unsigned(Int)).
 

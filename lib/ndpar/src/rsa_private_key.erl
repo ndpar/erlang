@@ -1,13 +1,15 @@
 %%
 %% @doc Restoring RSA private key from its parts.
 %%
-%% RSA private key consists of four integer values {p, q, t, d}.
+%% RSA private key consists of four integer values `{p, q, t, d}'.
 %% The knowledge of any one of these values is sufficient to
 %% compute all the other three.
 %%
-%% Easy case: Attacker knows p (or q). Then q = n / p.
-%% t = (p - 1)(q - 1) / gcd(p - 1, q - 1).
-%% d = e^-1 (mod t).
+%% Easy case: Attacker knows `p' (or `q'). Then
+%% ```
+%% q = n / p
+%% t = (p - 1)(q - 1) / gcd(p - 1, q - 1)
+%% d = e^-1 (mod t)'''
 %%
 %% To play with the functions in this module, the following commands
 %% may be useful if you want to generate the real private keys:
@@ -23,7 +25,7 @@
 -export([factorize_from_d/3, factorize_from_t/2]).
 
 %%
-%% @doc If attacker knows d, she can find {p, q} using this method.
+%% @doc If an attacker knows `d', she can find `{p, q}' using this method.
 %%
 -spec factorize_from_d(N :: pos_integer(), E :: pos_integer(), D :: pos_integer()) ->
   {P :: pos_integer(), Q :: pos_integer()} | error.
@@ -38,7 +40,7 @@ factorize_from_d(N, E, D, Factor) ->
   end.
 
 %%
-%% @doc If attacker knows t, she can find {p, q} using this method.
+%% @doc If an attacker knows `t', she can find `{p, q}' using this method.
 %%
 -spec factorize_from_t(N :: pos_integer(), T :: pos_integer()) ->
   {P :: pos_integer(), Q :: pos_integer()} | error.
