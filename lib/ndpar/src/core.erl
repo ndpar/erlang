@@ -1,9 +1,9 @@
 %%
-%% @doc A collection of higher order functions.
-%% Inspired by Clojure.
+%% @doc A collection of frequently used functions.
+%% Inspired by Clojure and Haskell.
 %%
 -module(core).
--export([frequencies/1, group_by/2, inc/1]).
+-export([frequencies/1, group_by/2, inc/1, minfree/1]).
 -export([zipfold/4, zipfold/5]).
 
 %%
@@ -11,6 +11,8 @@
 %%
 %% See [https://clojuredocs.org/clojure.core/frequencies]
 %%
+-spec frequencies([A]) -> #{A => pos_integer()}.
+
 frequencies(List) ->
   lists:foldl(fun update_count/2, #{}, List).
 
@@ -68,10 +70,38 @@ zipfold(F, Acc, [A | As], [B | Bs], [C | Cs]) ->
   zipfold(F, F(Acc, A, B, C), As, Bs, Cs).
 
 
+%%
+%% @doc The smallest free number.
+%%
+%% Computes the smallest natural number not in a given finite list
+%% of <em>unique</em> natural numbers.
+%%
+%% This algorithm takes linear time and space (tail-optimized).
+%% In comparison, the straightforward algorithm is quadratic:
+%% ```
+%% hd(lists:seq(0, N) -- List)'''
+%%
+%% See [B1] Chapter 1, pp. 1–6.
+%%
+-spec minfree([non_neg_integer()]) -> non_neg_integer().
+
+minfree(List) -> minfrom(0, {length(List), List}).
+
+minfrom(A, {0, []}) -> A;
+minfrom(A, {N, List}) ->
+  B = A + 1 + N div 2,
+  {Us, Vs} = lists:partition(fun(X) -> X < B end, List), % Θ(N)
+  M = length(Us),
+  case B - A of
+    M -> minfrom(B, {N - M, Vs});
+    _ -> minfrom(A, {M, Us})
+  end.
+
 %% =============================================================================
 %% Unit tests
 %% =============================================================================
 
+-ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
 
 zipfold_test_() -> [
@@ -87,3 +117,16 @@ frequencies_test() ->
 group_by_test() ->
   ?assertEqual(#{1=>["a"], 2=>["as", "aa"], 3=>["asd"], 4=>["asdf", "qwer"]},
     group_by(fun erlang:length/1, ["a", "as", "asd", "aa", "asdf", "qwer"])).
+
+minfree_test_() ->
+  List = [4, 0, 5, 7, 3, 10, 2, 1],
+  [
+    ?_assertEqual(0, minfree(lists:seq(1, 10))),
+    ?_assertEqual(0, minfree(lists:reverse(lists:seq(1, 10)))),
+    ?_assertEqual(9, minfree(lists:seq(0, 8))),
+    ?_assertEqual(9, minfree(lists:reverse(lists:seq(0, 8)))),
+    ?_assertEqual(6, minfree(List)),
+    ?_assertEqual(hd(lists:seq(0, 8) -- List), minfree(List))
+  ].
+
+-endif.
