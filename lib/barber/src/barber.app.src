@@ -1,15 +1,15 @@
 {application, barber,
- [{description, "State Machine Demo"},
-  {vsn, "0.1.0"},
-  {registered, []},
-  {applications,
-   [kernel,
-    stdlib
-   ]},
-  {env,[]},
-  {modules, []},
+  [{description, "State Machine Demo"},
+    {vsn, "0.2.0"},
+    {registered, []},
+    {applications,
+      [kernel,
+        stdlib
+      ]},
+    {env, []},
+    {modules, []},
 
-  {maintainers, ["Andrey Paramonov"]},
-  {licenses, ["Apache 2.0"]},
-  {links, [{"GitHub", "https://github.com/ndpar/erlang"}]}
- ]}.
+    {maintainers, ["Andrey Paramonov"]},
+    {licenses, ["Apache 2.0"]},
+    {links, [{"GitHub", "https://github.com/ndpar/erlang/tree/master/lib/barber"}]}
+  ]}.
