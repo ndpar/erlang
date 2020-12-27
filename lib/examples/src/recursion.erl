@@ -1,31 +1,31 @@
-%
-% F.Cesarini & S.Thomson, Erlang Programming, p.84.
-% Exercise 3-5: Manipulating lists
-% Exercise 3-6: Sorting lists
-%
+%%
+%% @reference [CT1], p.84.
+%% Exercise 3-5: Manipulating lists
+%% Exercise 3-6: Sorting lists
+%%
 -module(recursion).
 -export([average/1,
-         bump/1,
-         concatenate/1,
-         create/1, create/2,
-         create_r/1, create_r/2,
-         filter/2,
-         flatten/1,
-         merge/2,
-         msort/1,
-         print/1,
-         qsort/1, pqsort/1, pqsort_loop/2,
-         reverse/1,
-         sum/1, sum/2]).
+  bump/1,
+  concatenate/1,
+  create/1, create/2,
+  create_r/1, create_r/2,
+  filter/2,
+  flatten/1,
+  merge/2,
+  msort/1,
+  print/1,
+  qsort/1, pqsort/1, pqsort_loop/2,
+  reverse/1,
+  sum/1, sum/2]).
 
 bump(List) -> bump_acc(List, []).
 bump_acc([], Acc) -> Acc;
-bump_acc([H|T], Acc) -> bump_acc(T, Acc ++ [H + 1]).
+bump_acc([H | T], Acc) -> bump_acc(T, Acc ++ [H + 1]).
 
 average(List) -> average_acc(List, 0, 0).
 average_acc([], _, 0) -> 0;
-average_acc([], Sum, Len) -> Sum/Len;
-average_acc([H|T], Sum, Len) -> average_acc(T, Sum + H, Len + 1).
+average_acc([], Sum, Len) -> Sum / Len;
+average_acc([H | T], Sum, Len) -> average_acc(T, Sum + H, Len + 1).
 
 sum(N) -> sum_acc(1, N, 0).
 sum(N, M) -> sum_acc(N, M, 0).
@@ -61,11 +61,11 @@ flatten([]) -> [];
 flatten([H | T]) -> flatten(H) ++ flatten(T);
 flatten(X) -> [X].
 
-merge(Xs, Ys) -> lists:reverse(mergeL(Xs,Ys,[])).
-mergeL([X|Xs],Ys,Zs) -> mergeR(Xs,Ys,[X|Zs]);
-mergeL([],[],Zs) -> Zs.
-mergeR(Xs,[Y|Ys],Zs) -> mergeL(Xs,Ys,[Y|Zs]);
-mergeR([],[],Zs) -> Zs.
+merge(Xs, Ys) -> lists:reverse(mergeL(Xs, Ys, [])).
+mergeL([X | Xs], Ys, Zs) -> mergeR(Xs, Ys, [X | Zs]);
+mergeL([], [], Zs) -> Zs.
+mergeR(Xs, [Y | Ys], Zs) -> mergeL(Xs, Ys, [Y | Zs]);
+mergeR([], [], Zs) -> Zs.
 
 qsort([]) -> [];
 qsort([H | Tail]) -> qsort([Y || Y <- Tail, Y < H]) ++ [H] ++ qsort([Y || Y <- Tail, Y >= H]).
@@ -73,32 +73,32 @@ qsort([H | Tail]) -> qsort([Y || Y <- Tail, Y < H]) ++ [H] ++ qsort([Y || Y <- T
 % Parallel Quicksort.
 pqsort([]) -> [];
 pqsort([H | Tail]) ->
-    Left = spawn(?MODULE, pqsort_loop, [self(), [Y || Y <- Tail, Y < H]]),
-    Right = spawn(?MODULE, pqsort_loop, [self(), [Y || Y <- Tail, Y >= H]]),
-    receive
-        {Left, LSorted} -> ok
-    end,
-    receive
-        {Right, RSorted} -> ok
-    end,
-    LSorted ++ [H | RSorted].
+  Left = spawn(?MODULE, pqsort_loop, [self(), [Y || Y <- Tail, Y < H]]),
+  Right = spawn(?MODULE, pqsort_loop, [self(), [Y || Y <- Tail, Y >= H]]),
+  receive
+    {Left, LSorted} -> ok
+  end,
+  receive
+    {Right, RSorted} -> ok
+  end,
+  LSorted ++ [H | RSorted].
 
 pqsort_loop(From, List) ->
-    case List of
-        [] -> From ! {self(), List};
-        _ -> From ! {self(), pqsort(List)}
-    end.
+  case List of
+    [] -> From ! {self(), List};
+    _ -> From ! {self(), pqsort(List)}
+  end.
 
 % http://en.wikipedia.org/wiki/Merge_sort
 msort([]) -> [];
 msort([X]) -> [X];
 msort(List) ->
-    {Left, Right} = lists:split(trunc(length(List)/2), List),
-    merge_ordered(msort(Left), msort(Right)).
+  {Left, Right} = lists:split(trunc(length(List) / 2), List),
+  merge_ordered(msort(Left), msort(Right)).
 
 merge_ordered(Left, Right) -> merge_ordered_acc(Left, Right, []).
 merge_ordered_acc([], [], Acc) -> Acc;
 merge_ordered_acc(Left, [], Acc) -> Acc ++ Left;
 merge_ordered_acc([], Right, Acc) -> Acc ++ Right;
-merge_ordered_acc([X|Xs], [Y|Ys], Acc) when X < Y -> merge_ordered_acc(Xs, [Y|Ys], Acc ++ [X]);
-merge_ordered_acc([X|Xs], [Y|Ys], Acc) -> merge_ordered_acc([X|Xs], Ys, Acc ++ [Y]).
+merge_ordered_acc([X | Xs], [Y | Ys], Acc) when X < Y -> merge_ordered_acc(Xs, [Y | Ys], Acc ++ [X]);
+merge_ordered_acc([X | Xs], [Y | Ys], Acc) -> merge_ordered_acc([X | Xs], Ys, Acc ++ [Y]).
