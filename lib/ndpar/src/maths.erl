@@ -372,6 +372,10 @@ jacobi_test_() ->
     ?_assertEqual([1, 1, 0, 1, 1, 0, 1, 1], [jacobi(A, 9) || A <- lists:seq(1, 8)]),
     ?_assertEqual([1, 1, 0, 1, 0, 0, -1, 1, 0, 0, -1, 0, -1, -1], [jacobi(A, 15) || A <- lists:seq(1, 14)])].
 
+-ifdef(STOCHASTIC_TEST).
+
 pollard_rho_test_() -> [
-%%  ?_assert(lists:member(pollard_rho(455459), [613, 743])),
+  ?_assert(lists:member(pollard_rho(455459), [613, 743])),
   ?_assert(lists:member(pollard_rho(1387), [19, 73]))].
+
+-endif.
