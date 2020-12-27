@@ -9,7 +9,7 @@
 %%
 %% @doc Converts RSA public key from PKCS#1 format to PKIX.
 %%
--spec public_key(FileNameIn :: string(), FileNameOut :: string()) -> none().
+-spec public_key(FileNameIn :: string(), FileNameOut :: string()) -> ok.
 
 public_key(FileIn, FileOut) when is_list(FileIn), is_list(FileOut) ->
   {ok, PemInBin} = file:read_file(FileIn),
@@ -26,6 +26,7 @@ public_key(PemBin) when is_binary(PemBin) ->
 %% Unit tests
 %% =============================================================================
 
+-ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
 
 -define(PK_PKCS1,
@@ -53,3 +54,5 @@ BQOsatHaj8LGxMaTPHjRrjfeMKCoRnb9EdldQ7W5PAMvUs7CseY2/JTp/qLzIaZo
 
 public_key_test() ->
   ?assertEqual(?PK_PKIX, public_key(?PK_PKCS1)).
+
+-endif.

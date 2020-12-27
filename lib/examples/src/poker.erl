@@ -1,7 +1,6 @@
-%%%
-%%% Peter Norvig's 5-card Poker hand evaluator, ported to Erlang.
-%%%
-
+%%
+%% @doc Peter Norvig's 5-card Poker hand evaluator, ported to Erlang.
+%%
 -module(poker).
 -export([hand_rank/1, sort_hands/1, winners/1]).
 
@@ -85,9 +84,9 @@ winners(Hands) ->
     HighestRank = hand_rank(hd(SortedHands)),
     [H || H <- SortedHands, hand_rank(H) == HighestRank].
 
-%%% ===========================================================================
-%%% Unit tests
-%%% ===========================================================================
+%% ============================================================================
+%% Unit tests
+%% ============================================================================
 
 -include_lib("eunit/include/eunit.hrl").
 
