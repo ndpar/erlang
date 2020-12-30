@@ -10,9 +10,14 @@
 %%
 %% The solution should make as few evaluations of `f' as possible.
 %%
+%% See performance test results to choose the best algorithm
+%% for a given function.
+%%
 %% @reference [B1] Chapter 3, pp. 12–20
 %%
 -module(saddleback).
+-author("Andrey Paramonov <github@ndpar.com>").
+
 -export([invert/2, invert1/2, invert2/2, invert3/2, invert4/2]).
 
 -import(lists, [seq/2]).
@@ -36,14 +41,14 @@ invert(F, Z) -> invert4(F, Z).
 %% ```
 %% (0,Z)           (Z,Z)
 %%   ┌───────────────┐
-%%   │               │
-%%   │               │
-%%   │               │
-%%   │               │
-%%   │               │
-%%   │               │
-%%   │               │
-%%   └───────────────┘
+%%   ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑
+%%   │ │ │ │ │ │ │ │ │
+%%   │ │ │ │ │ │ │ │ │
+%%   │ │ │ │ │ │ │ │ │
+%%   │ │ │ │ │ │ │ │ │
+%%   │ │ │ │ │ │ │ │ │
+%%   │ │ │ │ │ │ │ │ │
+%%   └─┴─┴─┴─┴─┴─┴─┴─┘
 %% (0,0)           (Z,0)
 %% '''
 %% Inefficient (quadratic) but easy to understand.
@@ -60,23 +65,26 @@ invert1(F, Z) -> [{X, Y} || X <- seq(0, Z), Y <- seq(0, Z), F(X, Y) =:= Z].
 
 %%
 %% @doc Basic algorithm.
-%% Traverses the diagonal of the search square.
+%% Traverses the diagonal of the search square, from `(0,Z)' to `(Z,0)'.
 %% ```
 %% (0,Z)           (Z,Z)
-%%   ┌┬──────────────┐
-%%   │└─┐            │
-%%   │  │(U,V)       │
-%%   │  └─┬┬─────────┤
-%%   │    │└─┐       │
-%%   │    │  └─┐     │
-%%   │    │    └─┐   │
-%%   │    │      └─┐ │
-%%   └────┴────────┴─┘
+%%   ┌───────────────┐
+%%   ├─┐             │
+%%   │ │             │
+%%   │ └──┐          │
+%%   │    └─┐        │
+%%   │      └─┐      │
+%%   │        └─┐    │
+%%   │          └─┐  │
+%%   └────────────┴──┘
 %% (0,0)           (Z,0)
 %% '''
-%% Runs in linear time in `Z'. Not tail optimized.
+%% Runs in linear time in `Z'.
 %%
 %% See Anne's algorithm, [B1] p. 13.
+%% @end
+%%
+%% Not tail optimized.
 %%
 -spec invert2(F, Z) -> [{X, Y}] when
   F :: fun((X, Y) -> Z),
@@ -99,19 +107,19 @@ find2({U, V}, F, Z) ->
 %%
 %% @doc Improvement to the basic algorithm by
 %% Gries, Dijkstra, and Backhouse.
-%% Replaces the search square with a search rectangle.
+%% Replaces the search square with the search rectangle.
 %% ```
 %% (0,Z)           (Z,Z)
 %%   ┌───────────────┐
 %%   │               │
 %%   │               │
-%% M ├┬──────────────┤
-%%   │└─┐            │
-%%   │  └─┐          │
-%%   │    └─┐        │
-%%   │      └─┐      │
-%%   └────────┴──────┘
-%% (0,0)      N    (Z,0)
+%% M ├┬───────────┐  │
+%%   │└─┐         │  │
+%%   │  └─┐       │  │
+%%   │    └─┐     │  │
+%%   │      └─┐   │  │
+%%   └────────┴───┴──┘
+%% (0,0)         N (Z,0)
 %% '''
 %% For some functions it can yield logarithmic performance.
 %%
@@ -173,18 +181,20 @@ ext(F) ->
 %% (0,Z)           (Z,Z)
 %%   ┌───────────────┐
 %%   │               │
-%%   │               │
-%% M ├─────┬─────┐   │
-%%   │     │     │   │
-%%   ├─────┼─────┤   │
-%%   │     │     │   │
-%%   └─────┴─────┴───┘
-%% (0,0)         N (Z,0)
+%%   ├───┐           │
+%%   ├───┘.          │
+%%   │     ┌─┐       │
+%%   │     └─┘ .     │
+%%   │           ┌──┐│
+%%   └───────────┴──┴┘
+%% (0,0)           (Z,0)
 %% '''
 %% Asymptotically optimal saddleback search algorithm.
-%% Not tail optimized though and with list concatenations.
 %%
 %% See Mary's algorithm, [B1] p. 18.
+%% @end
+%%
+%% Not tail optimized though and with list concatenations.
 %%
 -spec invert4(F, Z) -> [{X, Y}] when
   F :: fun((X, Y) -> Z),
@@ -233,7 +243,7 @@ invert_test_() ->
     ?_assertEqual(Result, invert1(F, 5)),
     ?_assertEqual(Result, invert2(F, 5)),
     ?_assertEqual(Result, invert3(F, 5)),
-    ?_assertEqual(Result, lists:sort(invert4(F, 5)))
+    ?_assertEqual([{3, 2}, {1, 4}, {0, 5}, {2, 3}, {5, 0}, {4, 1}], invert4(F, 5))
   ].
 
 ext_test_() ->
