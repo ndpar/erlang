@@ -5,7 +5,7 @@
 %%
 %% See http://www.erlang.org/cgi-bin/ezmlm-cgi/4/177
 %%
--module(lazy1).
+-module(lazy2).
 -export([filter/2, foldl/3, map/2]).
 -export([first/2, filter_first/3, foldl_first/4, map_first/3]).
 -export([natural_numbers/0]).
