@@ -129,9 +129,13 @@ primes_upto_test() ->
 random_prime_test() ->
   ?assertEqual(103, random_prime(102, 105)).
 
+-ifdef(STOCHASTIC_TEST).
+
 pollard_p1_test_() -> [
   ?_assertEqual(7001, pollard_p1(7451 * 7001, 7)),   % 7450 = 2 5 5 149, 7000 = 2 2 2 5 5 5 7
   ?_assertEqual(5281, pollard_p1(3607 * 5281, 11)),  % 3606 = 2 3 601, 5280 = 2 2 2 2 2 3 5 11
   ?_assertEqual(5741, pollard_p1(5939 * 5741, 41)),  % 5938 = 2 2969, 5740 = 2 2 5 7 41
   ?_assertEqual(error, pollard_p1(5939 * 5741, 39)), % 39 < 41 and 2969
   ?_assertError(function_clause, pollard_p1(7001, 11))]. % 7001 is prime
+
+-endif.
