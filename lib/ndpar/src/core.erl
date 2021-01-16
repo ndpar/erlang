@@ -3,10 +3,24 @@
 %% Inspired by Clojure and Haskell.
 %%
 -module(core).
+-export([cross/2]).
 -export([frequencies/1, group_by/2, inc/1, minfree/1, msc/1, msc2/1]).
 -export([zipfold/4, zipfold/5]).
 
 -import(lists, [filter/2, map/2, max/1]).
+
+%%
+%% @doc Applies pair of functions to a pair of arguments.
+%%
+-spec cross(Funs :: {F, G}, Args :: {X, Y}) -> {A, B} when
+  F :: fun((X) -> A),
+  G :: fun((Y) -> B),
+  X :: term(),
+  Y :: term(),
+  A :: term(),
+  B :: term().
+
+cross({F, G}, {X, Y}) -> {F(X), G(Y)}.
 
 %%
 %% @doc Returns a map from distinct items in List to the number of times they appear.
@@ -157,6 +171,13 @@ tails([_ | Xs] = List) -> [List | tails(Xs)].
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
+
+cross_test_() ->
+  F = fun(X) -> 2 * X end,
+  G = fun(Y) -> 3 * Y end,
+  [
+    ?_assertEqual({2, 6}, cross({F, G}, {1, 2}))
+  ].
 
 zipfold_test_() -> [
   ?_assertEqual(2 + 6 + 12,
