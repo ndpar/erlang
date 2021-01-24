@@ -1,5 +1,5 @@
 %%
-%% @doc The problem o making a century is to list all the ways
+%% @doc The problem of making a century is to list all the ways
 %% the operations + and * can be inserted into the list of
 %% digits `[1..9]' so as to make a total of 100.
 %% Two such ways are:

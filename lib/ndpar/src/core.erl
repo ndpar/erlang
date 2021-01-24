@@ -4,7 +4,7 @@
 %%
 -module(core).
 -export([cross/2]).
--export([frequencies/1, group_by/2, inc/1, minfree/1, msc/1, msc2/1]).
+-export([frequencies/1, group_by/2, inc/1, min_by/2, minfree/1, msc/1, msc2/1]).
 -export([zipfold/4, zipfold/5]).
 
 -import(lists, [filter/2, map/2, max/1]).
@@ -34,6 +34,20 @@ frequencies(List) ->
 
 update_count(X, Map) ->
   maps:update_with(X, fun(C) -> C + 1 end, 1, Map).
+
+%%
+%% @doc Returns an element `E' of the list with minimum value of `F(E)'.
+%%
+min_by(_, [X]) -> X;
+min_by(F, [X | Xs]) -> min_by(F, Xs, {X, F(X)}).
+
+min_by(_, [], {Y, _}) -> Y;
+min_by(F, [X | Xs], {_, Fy} = Min) ->
+  Fx = F(X),
+  case min(Fx, Fy) of
+    Fx -> min_by(F, Xs, {X, Fx});
+    Fy -> min_by(F, Xs, Min)
+  end.
 
 %%
 %% @doc Returns a map of the elements of List keyed by the result of
@@ -192,6 +206,12 @@ frequencies_test() ->
 group_by_test() ->
   ?assertEqual(#{1 => ["a"], 2 => ["as", "aa"], 3 => ["asd"], 4 => ["asdf", "qwer"]},
     group_by(fun erlang:length/1, ["a", "as", "asd", "aa", "asdf", "qwer"])).
+
+min_by_test_() ->
+  F = fun(X) -> X * X end,
+  [
+    ?_assertEqual(1, min_by(F, [-3, 1, 5]))
+  ].
 
 minfree_test_() ->
   List = [4, 0, 5, 7, 3, 10, 2, 1],
