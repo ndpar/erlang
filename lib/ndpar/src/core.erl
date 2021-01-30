@@ -5,7 +5,7 @@
 -module(core).
 -export([cross/2]).
 -export([frequencies/1, group_by/2, inc/1, min_by/2, minfree/1, msc/1, msc2/1]).
--export([zipfold/4, zipfold/5]).
+-export([foldl1/2, zipfold/4, zipfold/5]).
 
 -import(lists, [filter/2, map/2, max/1]).
 
@@ -21,6 +21,13 @@
   B :: term().
 
 cross({F, G}, {X, Y}) -> {F(X), G(Y)}.
+
+
+foldl1(_, [X]) -> X;
+foldl1(F, [X | Xs]) -> foldl1(F, X, Xs).
+
+foldl1(F, Accu, [Hd | Tail]) -> foldl1(F, F(Accu, Hd), Tail);
+foldl1(F, Accu, []) when is_function(F, 2) -> Accu.
 
 %%
 %% @doc Returns a map from distinct items in List to the number of times they appear.

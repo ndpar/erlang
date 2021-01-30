@@ -6,9 +6,41 @@
 -module(trees).
 -author("Andrey Paramonov <github@ndpar.com>").
 
--export([]).
+-export([trees/1]).
+-export([forests/1, prefixes/2, rollup/1]).
 
--import(lists, [concat/1, map/2]).
+-import(lists, [concat/1, foldl/3, map/2]).
+
+-type tree(Value) :: {leaf, Value} | {fork, tree(Value), tree(Value)}.
+-type forest(Value) :: [tree(Value)].
+
+
+-spec trees(Fringe :: [integer()]) -> [tree(integer())].
+trees(Fringe) -> map(fun rollup/1, forests(Fringe)).
+
+
+-spec forests(Fringe :: [integer()]) -> [forest(integer())].
+forests(Fringe) ->
+  F = fun(P, Ts) -> concat(map(fun(T) -> prefixes(P, T) end, Ts)) end,
+  G = fun(X) -> [[{leaf, X}]] end,
+  foldrn(F, G, Fringe).
+
+
+-spec prefixes(X :: integer(), Ts :: forest(integer())) -> [forest(integer())].
+prefixes(X, Ts) ->
+  [[{leaf, X} | split_and_rollup(K, Ts)] || K <- lists:seq(1, length(Ts))].
+
+split_and_rollup(K, Ts) ->
+  {L, R} = lists:split(K, Ts),
+  [rollup(L) | R].
+
+%%
+%% @doc Left fold forest (lists of trees) into a single tree.
+%%
+-spec rollup(Forest :: forest(T)) -> tree(T).
+rollup(Forest) ->
+  F = fun(L, R) -> {fork, L, R} end,
+  core:foldl1(F, Forest).
 
 cost({leaf, X}) -> X;
 cost({fork, U, V}) -> 1 + max(cost(U), cost(V)).
@@ -43,6 +75,11 @@ prefixes2(X, {fork, U, V} = T) ->
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
+
+trees_test_() ->
+  [
+    ?_assertEqual(14, length(trees([1, 2, 3, 4, 5])))
+  ].
 
 foldrn_test_() ->
   F = fun(X, Y) -> X + Y end,
