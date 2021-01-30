@@ -6,13 +6,23 @@
 -module(trees).
 -author("Andrey Paramonov <github@ndpar.com>").
 
--export([trees/1]).
--export([forests/1, prefixes/2, rollup/1]).
+-export([cost/1, mincost_tree/1, trees/1]).
 
 -import(lists, [concat/1, foldl/3, map/2]).
 
 -type tree(Value) :: {leaf, Value} | {fork, tree(Value), tree(Value)}.
 -type forest(Value) :: [tree(Value)].
+
+
+trees2(Fringe) ->
+  F = fun(P, Ts) -> concat(map(fun(T) -> prefixes2(P, T) end, Ts)) end,
+  G = fun(X) -> [{leaf, X}] end,
+  foldrn(F, G, Fringe).
+
+prefixes2(X, {leaf, _} = T) -> [{fork, {leaf, X}, T}];
+prefixes2(X, {fork, U, V} = T) ->
+  Us = [{fork, Un, V} || Un <- prefixes2(X, U)],
+  [{fork, {leaf, X}, T} | Us].
 
 
 -spec trees(Fringe :: [integer()]) -> [tree(integer())].
@@ -42,10 +52,11 @@ rollup(Forest) ->
   F = fun(L, R) -> {fork, L, R} end,
   core:foldl1(F, Forest).
 
+-spec cost(tree(integer())) -> integer().
 cost({leaf, X}) -> X;
 cost({fork, U, V}) -> 1 + max(cost(U), cost(V)).
 
-mincost(Fringe) -> core:min_by(fun cost/1, trees2(Fringe)).
+mincost_tree_2(Fringe) -> core:min_by(fun cost/1, trees2(Fringe)).
 
 %%
 %% @doc General right fold on nonempty lists.
@@ -59,15 +70,31 @@ mincost(Fringe) -> core:min_by(fun cost/1, trees2(Fringe)).
 foldrn(_, G, [X]) -> G(X);
 foldrn(F, G, [X | Xs]) -> F(X, foldrn(F, G, Xs)).
 
-trees2(Fringe) ->
-  F = fun(P, Ts) -> concat(map(fun(T) -> prefixes2(P, T) end, Ts)) end,
-  G = fun(X) -> [{leaf, X}] end,
-  foldrn(F, G, Fringe).
+%% =============================================================================
+%% Final algorithm
+%% =============================================================================
 
-prefixes2(X, {leaf, _} = T) -> [{fork, {leaf, X}, T}];
-prefixes2(X, {fork, U, V} = T) ->
-  Us = [{fork, Un, V} || Un <- prefixes2(X, U)],
-  [{fork, {leaf, X}, T} | Us].
+-spec mincost_tree(Fringe :: [integer()]) -> tree(integer()).
+mincost_tree(Fringe) ->
+  G = fun(X) -> [leaf(X)] end,
+  TCs = foldrn(fun insert/2, G, Fringe),
+  F = fun(L, R) -> {fork, L, R} end,
+  core:foldl1(F, [T || {_, T} <- TCs]).
+
+insert(X, Ts) -> [leaf(X) | split(X, Ts)].
+
+split(_, [U]) -> [U];
+split(X, [{Cu, _} = U, {Cv, _} = V | Ts] = Spine) ->
+  Cxu = max(X, Cu),
+  if
+    Cxu < Cv -> Spine;
+    true -> split(X, fork(U, [V | Ts]))
+  end.
+
+%% Smart constructors to pair tree node with its cost.
+
+leaf(X) -> {X, {leaf, X}}.
+fork({A, U}, {B, V}) -> {1 + max(A, B), {fork, U, V}}.
 
 %% =============================================================================
 %% Unit tests
@@ -93,7 +120,7 @@ trees2_test_() ->
     ?_assertEqual(14, length(trees2([1, 2, 3, 4, 5])))
   ].
 
-mincost_test_() ->
+mincost_tree_test_() ->
   [
     ?_assertEqual(
       {fork,
@@ -109,7 +136,11 @@ mincost_test_() ->
         },
         {leaf, 5}
       },
-      mincost([1, 2, 3, 4, 5])
+      mincost_tree_2([1, 2, 3, 4, 5])
+    ),
+    ?_assertEqual(
+      mincost_tree_2([1, 2, 3, 4, 5]),
+      mincost_tree([1, 2, 3, 4, 5])
     )
   ].
 
